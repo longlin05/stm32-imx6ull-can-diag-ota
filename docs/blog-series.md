@@ -26,8 +26,8 @@
 
 | 编号 | 标题 | 对应里程碑 | 状态 | 链接 |
 |---|---|---|---|---|
-| 00 | 从“CAN 能通”到“可诊断、可升级”：项目总览 | 仓库初始化 | 待写 |  |
-| 01 | 基线审计：旧 CAN 项目哪些能复用、哪些要改 | `a-baseline` | 待写 |  |
+| 00 | 从“CAN 能通”到“可诊断、可升级”：项目总览 | 仓库初始化 | 已发布 | https://blog.csdn.net/longlin101/article/details/169562720 |
+| 01 | 基线审计：旧 CAN 项目哪些能复用、哪些要改 | `a-baseline` | 已发布，待补证据/重写 | https://blog.csdn.net/longlin101/article/details/169562773 |
 | 02 | ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin 与超时重传 | `a-v0.1` | 待写 |  |
 | 03 | UDS 子集：`0x10/0x3E/0x22/0x19/0x14` 与 DTC | `a-v0.2` | 待写 |  |
 | 04 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.3` | 待写 |  |
