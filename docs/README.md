@@ -5,6 +5,7 @@
 | [scope-a.md](scope-a.md) | 项目 A 的目标、范围、验收标准（A 方案） | 当前 |
 | [baseline-audit.md](baseline-audit.md) | 旧 CAN 项目审计：哪些复用、哪些重写、哪些不要 | 待填写 |
 | [bringup.md](bringup.md) | 硬件接线、上电顺序、第一次通信 | 初稿 |
+| [module-import.md](module-import.md) | 模块代码导入清单、丢弃项、PC1 冲突 | 当前 |
 | [protocol.md](protocol.md) | CAN 应用层、ISO-TP、UDS、DTC、OTA 协议 | 初稿 |
 | [test-report.md](test-report.md) | 测试记录模板与验收指标 | 模板 |
 | [blog-series.md](blog-series.md) | 博客系列索引、写作规范、第一篇提纲 | 初稿 |

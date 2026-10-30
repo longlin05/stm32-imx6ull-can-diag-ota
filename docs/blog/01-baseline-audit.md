@@ -27,7 +27,7 @@
 
 | 项目 | 内容 |
 |---|---|
-| 旧仓库 | `CAN-` @ `5ea7a5965c25a33a32fcf9edc2a267e260065a16` |
+| 旧仓库 | `CAN-` @ `8a5d561bf74d9f5f27b0a7818d3b32c6da72beab` |
 | 新仓库 | `stm32-imx6ull-can-diag-ota` @ `main` |
 | STM32 | STM32F407VGT6-Disc |
 | Linux 板 | i.MX6ULL mini EMMC |
@@ -49,6 +49,8 @@
 - `can_test/`：CAN 发送/接收示例。
 
 没有 DHT11、PIR、SocketCAN 的源码；也没有 AHT20。
+
+这些模块后来从本地 `模块代码/` 导入到新仓库的 `firmware/modules/` 和 `firmware/reference/`；SocketCAN 仍然缺失。导入清单见 `docs/module-import.md`。
 
 ### 2.1 `can_test` 的主循环
 
@@ -108,12 +110,12 @@ LICENSE
 
 | 模块 | 来源 | 现状 | 决定 | 下一步 |
 |---|---|---|---|---|
-| CAN | `CAN-` @ `5ea7a59` `can_test` | 能初始化/单次收发 | **复用初始化/滤波思路** | 重写周期主循环、错误统计、bus-off 恢复 |
-| DHT11 | 待补：本地工程/其他仓库 | 能读，源码未上传 | **复用** | 导入源码；校验和/超时；采样 ≥2s |
-| PIR | 待补：本地工程/其他仓库 | 能触发，源码未上传 | **复用** | 导入源码；消抖/事件计数 |
-| 光照 | 待补：本地工程/其他仓库 | ADC 能读，源码未上传 | **复用** | 导入源码；越界判断 |
-| SocketCAN | 待补：本地工程/板端 | 能收发，源码未上传 | **重构** | 拆成网关 `can_rx`，加过滤/错误帧 |
-| AHT20 | 无 | A 项目不用 | **移出 A 的 baseline** | 留给 B 项目做 IIO 驱动 |
+| CAN | `CAN-` @ `8a5d561` `can_test` | 能初始化/单次收发 | **复用初始化/滤波思路** | 已导入 `firmware/baseline`；重写周期主循环 |
+| DHT11 | `模块代码/DHT11/DHT11` | 能读，含位对齐/校验和 | **复用** | 已导入 `firmware/modules/dht11`；PC1，≥2s |
+| PIR | `模块代码/HC-SR501/HC-SR501` | 轮询/预热/消抖/2s 保持 | **复用** | 已导入 `firmware/modules/pir`；默认 PE0 |
+| 光照 | 待补：本地工程/板端 | ADC 能读，源码未上传 | **复用** | 仍需导入；越界判断 |
+| SocketCAN | 待补：本地工程/板端 | 能收发，源码未上传 | **重构** | 仍需导入/拆成 `gateway/can_rx` |
+| AHT20 | `模块代码/aht20/aht20` | LibDriver，STM32 参考 | **移出 A baseline** | 给 B 项目 IIO 驱动参考 |
 
 > A 项目的温湿度用 DHT11；AHT20 不在 A 的 baseline 里，留给 B 项目做 i.MX6ULL 的 IIO 驱动。两者不要混。
 
@@ -202,7 +204,7 @@ git push origin a-baseline
 
 - 新仓库：https://github.com/longlin05/stm32-imx6ull-can-diag-ota
 - 旧仓库：https://github.com/longlin05/CAN-
-- 旧仓库 commit：`5ea7a5965c25a33a32fcf9edc2a267e260065a16`
+- 旧仓库 commit：`8a5d561bf74d9f5f27b0a7818d3b32c6da72beab`
 - 系列目录：https://blog.csdn.net/longlin101/article/details/169562720
 - 下一篇：ISO-TP 多帧（等 4 KB 跑通再发）
 

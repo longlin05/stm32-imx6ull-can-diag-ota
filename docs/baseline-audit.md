@@ -17,7 +17,7 @@
 
 ### 1.1 已确认：`CAN-` 仓库里实际有什么
 
-`CAN-` @ `5ea7a5965c25a33a32fcf9edc2a267e260065a16`：
+`CAN-` @ `8a5d561bf74d9f5f27b0a7818d3b32c6da72beab`：
 
 - `can_loopback_silence/`：STM32 CAN 静默回环示例；
 - `can_test/`：STM32 CAN 发送/接收示例；
@@ -28,10 +28,10 @@
 
 | 模块 | 来源 | 现状 |
 |---|---|---|
-| CAN | `CAN-` @ `5ea7a59` | 可复用 CAN1 初始化/滤波思路；`can_test` 主循环只发一次，需重写 |
-| DHT11 | 待确认：本地工程/其他仓库 | 需要导入源码和接线说明 |
-| PIR | 待确认：本地工程/其他仓库 | 需要导入源码和消抖逻辑 |
-| SocketCAN | 待确认：本地工程/板端 | 需要导入/重构成网关 `can_rx` |
+| CAN | `CAN-` @ `8a5d561` | 已导入 `firmware/baseline`；`can_test` 主循环只发一次，需重写 |
+| DHT11 | `模块代码/DHT11/DHT11` | 已导入 `firmware/modules/dht11`；PC1，≥2s 采样 |
+| PIR | `模块代码/HC-SR501/HC-SR501` | 已导入 `firmware/modules/pir`；默认 PE0，轮询/消抖 |
+| SocketCAN | 待确认：本地工程/板端 | 仍缺；需要导入/重构成 `gateway/can_rx` |
 
 > 博客里写“复用”之前，先把这张表的“来源”填上；否则读者无法验证。
 

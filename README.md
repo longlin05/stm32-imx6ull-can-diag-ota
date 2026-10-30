@@ -83,14 +83,17 @@ flowchart LR
 
 ### Baseline 来源
 
-| 模块 | 来源 | 备注 |
-|---|---|---|
-| CAN | `CAN-` @ `5ea7a59` | 只有 STM32 loopback/test 示例；主循环需重写 |
-| DHT11 | 待补：本地工程/其他仓库 | 需导入源码和接线 |
-| PIR | 待补：本地工程/其他仓库 | 需导入源码和消抖逻辑 |
-| SocketCAN | 待补：本地工程/板端 | 需导入/重构成网关 `can_rx` |
+| 模块 | 来源 | 导入位置 | 备注 |
+|---|---|---|---|
+| CAN | `CAN-` @ `8a5d561` | `firmware/baseline/can_test`、`can_loopback_silence` | STM32 示例；主循环需重写 |
+| DHT11 | `模块代码/DHT11/DHT11` | `firmware/modules/dht11` | 单总线，PC1；≥2s 采样 |
+| PIR | `模块代码/HC-SR501/HC-SR501` | `firmware/modules/pir` | 轮询/消抖；默认 PE0 |
+| FreeRTOS | `模块代码/freertos/freertos` | `firmware/reference/freertos` | 任务划分参考 |
+| AHT20 | `模块代码/aht20/aht20` | `firmware/reference/aht20` | 给 B 项目参考，不是 A baseline |
+| SocketCAN | **待补**：本地工程/板端 | `gateway/` | 导入/重构成 `can_rx` |
 
-> 在打 `a-baseline` tag 之前，先把“待补”的来源补全；否则 tag 里没有真正的 baseline。
+> 在打 `a-baseline` tag 之前，先把 SocketCAN 的来源补全；否则 tag 里没有完整的双机 baseline。
+> 导入清单和清理规则见 [`docs/module-import.md`](docs/module-import.md)。
 
 ---
 
@@ -254,6 +257,7 @@ ssh root@<board-ip> systemctl restart can-gateway
 
 - [项目 A 范围](docs/scope-a.md)
 - [Baseline 审计](docs/baseline-audit.md)
+- [模块代码导入清单](docs/module-import.md)
 - [CAN / ISO-TP / UDS / OTA 协议](docs/protocol.md)
 - [测试记录模板](docs/test-report.md)
 - [博客系列索引](docs/blog-series.md)
