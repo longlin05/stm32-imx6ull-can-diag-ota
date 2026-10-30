@@ -1,0 +1,56 @@
+# Build output
+build/
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.su
+*.lst
+*.axf
+*.crf
+*.dep
+*.htm
+*.lnp
+*.sct
+*.iex
+*.scvd
+
+# Linux kernel modules
+*.ko
+*.mod
+*.mod.c
+*.symvers
+*.order
+.tmp_versions/
+
+# IDE / editor
+.vscode/
+.idea/
+*.uvguix*
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and local captures
+*.log
+*.pcap
+*.pcapng
+test/records/*.tmp
+
+# Local-only config / secrets
+config.local.ini
+.env
+secrets.h
+
+# Keep source-of-truth project files
+!*.ioc
+!*.ld
+!*.s
+!*.S
