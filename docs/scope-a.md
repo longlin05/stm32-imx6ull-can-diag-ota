@@ -1,7 +1,7 @@
 # 项目 A 范围：CAN 诊断与 OTA 闭环（A 方案）
 
 > 本文件是项目 A 的“目标定义”，优先级高于旧计划文档里的项目 A 描述。
-> 基线：双机 CAN、传感器采集、SocketCAN 收发已经能跑；本项目只做增量。
+> 基线：STM32→Linux 单向上报已通；Linux 端有基础 SocketCAN 接收/解析；Linux→STM32、诊断、OTA 是增量。
 
 ---
 
@@ -28,7 +28,7 @@
 | 双机 CAN | STM32→Linux 500 kbps 已通；Linux→STM32 预留未实现 | 双向命令/ACK、错误帧统计、bus-off 恢复、总线负载测试 |
 | 传感器 | DHT11 / PIR 能读（光照未做） | 健康检查、超时/越界、DTC 触发 |
 | 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留 | ISO-TP、UDS、DTC、OTA |
-| SocketCAN | 无（源码缺失） | 网关、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| SocketCAN | 基础接收/解析（`can_recv.c`） | epoll、双向命令/ACK、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 升级 | 无 | Bootloader、A/B、CRC32、续传、回滚 |
 | 测试 | 基本没有 | 故障注入、24h/72h、P99、50 次 OTA |
 

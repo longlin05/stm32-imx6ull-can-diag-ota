@@ -34,7 +34,7 @@ https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 - `can通讯/.git`（保留原仓库，不要把嵌套 git 带进新仓库）
 - `AImate/FreeRTOS/`、`AImate/Drivers/`、`AImate/.metadata/`、`AImate/Debug/`（只保留协议/应用参考）
 
-> **SocketCAN：没有。** 在 AImate 里搜索 `PF_CAN`、`SocketCAN`、`AF_CAN`、`can0` 均无结果；Linux 端代码需要新写。
+> **SocketCAN：AImate 里没有，但本地虚拟机代码已拷入 `gateway/src/can.c` 和 `can_recv.c`。** 目前只做接收/解析，epoll/双向/诊断仍需补。
 >
 > **光照：没有做。** 已从项目范围移除，不要再写“光照采集”。
 

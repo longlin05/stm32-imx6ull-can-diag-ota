@@ -76,7 +76,7 @@ flowchart LR
 | 诊断 | 无 | `0x10 / 0x3E / 0x22 / 0x19 / 0x14` |
 | 故障管理 | 无 | 5 类 DTC、状态位、掉电存储、读/清 |
 | 升级 | 无 | CAN Bootloader、A/B 分区、CRC32、断点续传、回滚 |
-| Linux 网关 | 无（AImate 只有 STM32 端；SocketCAN 源码缺失） | SocketCAN 网关、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| Linux 网关 | 基础 SocketCAN 接收：`gateway/src/can.c`、`can_recv.c` | epoll、双向命令/ACK、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 证据 | 博客/功能演示 | 测试报告 + 故障注入 + 24h/72h 数据 + demo |
 
 **Baseline 只保留一句简历描述，不占主 bullet。** 主 bullet 全部留给新增能力。
@@ -88,9 +88,9 @@ flowchart LR
 | CAN | `CAN-` @ `8a5d561` | `firmware/baseline/` | STM32 示例；主循环需重写 |
 | DHT11 / AHT20 / PIR / FreeRTOS | 旧外设工程 | 独立仓库：[DHT11-AHT20-RIR-Freertos](https://github.com/longlin05/DHT11-AHT20-RIR-Freertos) | 已迁出，主仓库不重复维护 |
 | AImate 协议/上报 | `模块代码/AImate` | `firmware/reference/AImate/` | `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留未实现 |
-| SocketCAN | **待补**：Linux 代码在本地虚拟机 | `gateway/` | 需要新写 `can_rx` |
+| SocketCAN | 本地虚拟机拷入 | `gateway/src/can.c`、`can_recv.c` | 已能收/解析；还需 epoll/双向/诊断 |
 
-> 在打完整 `a-baseline` 之前，先把 SocketCAN 的来源补全；当前只有 `a-baseline-stm32`。
+> SocketCAN 已有基础接收代码，但还没有 epoll/双向命令/诊断；完整 `a-baseline` 仍待补。
 > 导入清单和清理规则见 [`docs/module-import.md`](docs/module-import.md)。
 
 ---

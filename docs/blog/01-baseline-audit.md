@@ -18,7 +18,7 @@
 
 - **CAN**：初始化/滤波思路可复用；`can_test` 的主循环是“发一次、收一次”，不是周期协议，必须重写。
 - **DHT11 / PIR**：已从本地模块代码导入；**光照没做过，已移出**。
-- **SocketCAN**：在 AImate 目录里搜不到，Linux 端 baseline 缺失。
+- **SocketCAN**：AImate 里搜不到；后来从本地虚拟机拷入基础 `can_recv.c`，但还缺 epoll/双向/诊断。
 - **AHT20**：A 项目不用，留给 B 项目做 i.MX6ULL 的 IIO 驱动。
 - **结论**：先补源码，再打 `a-baseline`；tag 不能指向一个只有文档的 scaffold。
 
@@ -51,7 +51,7 @@
 
 没有 DHT11、PIR、SocketCAN 的源码；也没有 AHT20。
 
-这些模块后来从本地 `模块代码/` 抽到独立外设仓库 `DHT11-AHT20-RIR-Freertos`；SocketCAN 仍然缺失。导入清单见 `docs/module-import.md`。
+这些模块后来从本地 `模块代码/` 抽到独立外设仓库 `DHT11-AHT20-RIR-Freertos`；SocketCAN 基础接收从本地虚拟机拷入 `gateway/src/`，但还没有 epoll/双向/诊断。导入清单见 `docs/module-import.md`。
 
 ### 2.1 `can_test` 的主循环
 
@@ -114,7 +114,7 @@ LICENSE
 | CAN | `CAN-` @ `8a5d561` `can_test` | 能初始化/单次收发 | **复用初始化/滤波思路** | 已导入 `firmware/baseline`；重写周期主循环 |
 | DHT11 | `模块代码/DHT11/DHT11` | 能读，含位对齐/校验和 | **复用** | 已迁到外设仓库 `dht11/`；PC1，≥2s |
 | PIR | `模块代码/AImate/.../driver_pir.*` | 预热/消抖/2s 保持 | **复用** | 已迁到外设仓库 `pir/`；默认 PC1，需改 PE0 |
-| SocketCAN | AImate 中无 | 只有 STM32 端，没有 Linux 端 | **缺失** | 需要新写 `gateway/can_rx` |
+| SocketCAN | 本地虚拟机 | 基础接收/解析可用 | **部分复用** | 已拷入 `gateway/src/`；补 epoll/双向/诊断 |
 | AHT20 | `模块代码/AImate/.../driver_aht20.*` | LibDriver，STM32 参考 | **移出 A baseline** | 已迁到外设仓库 `aht20/`；给 B 参考 |
 
 > A 项目的温湿度用 DHT11；AHT20 不在 A 的 baseline 里，留给 B 项目做 i.MX6ULL 的 IIO 驱动。两者不要混。
@@ -150,12 +150,12 @@ git commit -m "chore: import working CAN baseline"
 git add docs/baseline-audit.md
 git commit -m "docs: complete baseline audit"
 
-# 3. 先打 STM32 侧基线 tag（SocketCAN 还没接）
+# 3. 先打 STM32 侧基线 tag（Linux 双向/诊断还没接）
 git tag -a a-baseline-stm32 -m "STM32 baseline: CAN + DHT11 + PIR"
 git push origin main
 git push origin a-baseline-stm32
 
-# 等 Linux SocketCAN 接入、双机双向跑通后，再打完整的 a-baseline
+# 等 Linux epoll/双向命令/诊断接入后，再打完整的 a-baseline
 ```
 
 **不是不冻结，是冻结条件没满足。**
@@ -170,7 +170,7 @@ git push origin a-baseline-stm32
 | 2 | 没有版本号 | 串口只打印初始化信息 | 无法确认板子上跑的是哪版 | 加 `FW_VERSION`，串口/诊断都能读 |
 | 3 | 没有错误帧统计 | `can_test` 没处理 `CAN_IT_ERROR` | 丢帧无法定位 | 加错误计数、bus-off 回调 |
 | 4 | 构建产物进仓库 | `.metadata/`、`Debug/` | clone 很大、难读 | 新仓库只保留源码/工程文件 |
-| 5 | SocketCAN 源码缺失 | AImate 里搜不到 `PF_CAN`/`can0` | 双机 baseline 不完整 | 新写 `gateway/can_rx`，再打完整 `a-baseline` |
+| 5 | SocketCAN 只有基础接收 | AImate 里没有；虚拟机代码只有 `can_recv` | 双机 baseline 不完整 | 补 epoll/双向/诊断，再打完整 `a-baseline` |
 
 ---
 
@@ -178,10 +178,10 @@ git push origin a-baseline-stm32
 
 ### 第 1 步：补 baseline
 
-- CAN/DHT11/PIR 已导入；SocketCAN 仍缺失；
+- CAN/DHT11/PIR 已导入；SocketCAN 基础接收已拷入，仍缺 epoll/双向；
 - 填 `docs/baseline-audit.md` 的来源表；
 - 先打 `a-baseline-stm32`；
-- SocketCAN 接入后再打完整 `a-baseline`；
+- epoll/双向命令接入后再打完整 `a-baseline`；
 - 更新 README 的“已有什么/没有什么”。
 
 ### 第 2 步：baseline 加固

@@ -31,7 +31,7 @@
 | CAN | `CAN-` @ `8a5d561` | 已导入 `firmware/baseline`；`can_test` 主循环只发一次，需重写 |
 | DHT11 | `模块代码/DHT11/DHT11` | 已迁到外设仓库 `dht11/`；PC1，≥2s 采样 |
 | PIR | `模块代码/AImate/.../driver_pir.*` | 已迁到外设仓库 `pir/`；默认 PC1，需改 PE0 避免冲突 |
-| SocketCAN | 待确认：本地工程/板端 | 仍缺；需要导入/重构成 `gateway/can_rx` |
+| SocketCAN | 本地虚拟机拷入 `gateway/src/can.c`、`can_recv.c` | 能收/解析；还需 epoll/双向/诊断 |
 
 > 博客里写“复用”之前，先把这张表的“来源”填上；否则读者无法验证。
 
@@ -79,7 +79,7 @@ git log --oneline -10
 | `pir` | 能触发 | **复用** | 补消抖/事件计数 |
 | `usart` | 能打印 | **复用** | 只作为调试口，不再扩展 |
 | 应用协议 | `0x301/0x401` 等 | **复用帧格式** | 新增 ISO-TP/UDS，不推翻旧帧 |
-| SocketCAN 程序 | 能收发 | **部分复用** | 重构成网关的 `can_rx` 模块 |
+| SocketCAN 程序 | 能收/解析 AImate 帧 | **已导入** | 后续加 epoll/双向命令/诊断 |
 | 旧 README | 教程式 | **不直接复用** | 重写为项目 README |
 
 ### Step 4：标记“不要”的代码
