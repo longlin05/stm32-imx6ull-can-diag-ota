@@ -71,12 +71,12 @@ flowchart LR
 
 | 能力 | Baseline（已有） | 本项目（新增） |
 |---|---|---|
-| CAN 传输 | 双机 500 kbps 能收发 | 错误帧统计、bus-off 恢复、总线负载/延迟测试 |
-| 应用协议 | 0x301/0x302/0x401/0x402/0x403 | ISO-TP 多帧 + UDS 诊断 + DTC |
+| CAN 传输 | STM32→Linux 500 kbps 已通；Linux→STM32 预留未实现 | 双向命令/ACK、错误帧统计、bus-off 恢复、总线负载/延迟测试 |
+| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留 | ISO-TP 多帧 + UDS 诊断 + DTC |
 | 诊断 | 无 | `0x10 / 0x3E / 0x22 / 0x19 / 0x14` |
 | 故障管理 | 无 | 5 类 DTC、状态位、掉电存储、读/清 |
 | 升级 | 无 | CAN Bootloader、A/B 分区、CRC32、断点续传、回滚 |
-| Linux 网关 | SocketCAN 收发 | 诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| Linux 网关 | 无（AImate 只有 STM32 端；SocketCAN 源码缺失） | SocketCAN 网关、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 证据 | 博客/功能演示 | 测试报告 + 故障注入 + 24h/72h 数据 + demo |
 
 **Baseline 只保留一句简历描述，不占主 bullet。** 主 bullet 全部留给新增能力。
@@ -149,13 +149,13 @@ flowchart LR
 | i.MX6ULL mini EMMC | Linux 网关 / 诊断客户端 / OTA Server | 板载 CAN 或 MCP2515 |
 | CAN 收发器 ×2 | 物理层 | 优先 SN65HVD230 / TJA1051T/3（3.3V） |
 | DHT11 | 温湿度 | 单总线 GPIO，3.3V，4.7k–10k 上拉 |
-| 光敏模块 | 光照 | ADC，电压不超过 3.3V |
 | HC-SR501 | 人体感应 | 5V 供电，输出 3.3V，共地 |
 | 120Ω ×2 | 终端电阻 | 总线两端各一个 |
 | USB-TTL | 调试串口 | 115200 |
 | 示波器/逻辑分析仪 | 底层调试 | 排查晶振、SPI、CAN 波形 |
 
-> DHT11 是单总线，采样间隔建议 ≥ 2 s；`0x301` 每 500 ms 发送最近一次有效缓存值。
+> DHT11 是单总线，采样间隔建议 ≥ 2 s；baseline 的 `0x112` 就是 2 s 上报一帧。
+> 光照传感器未做，已从本项目移除；不要再写“光照采集”。
 >
 > 详细接线与 bring-up 步骤见 [`docs/bringup.md`](docs/bringup.md)，旧代码审计见 [`docs/baseline-audit.md`](docs/baseline-audit.md)。
 

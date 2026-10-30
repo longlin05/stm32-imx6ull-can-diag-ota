@@ -25,9 +25,8 @@
 | PA11 / CAN1_RX | 收发器 RXD | 接收 |
 | 3.3V | 收发器 VCC | 3.3V 型收发器 |
 | GND | 收发器 GND | 共地 |
-| PE1（示例） | DHT11 DATA | 单总线，4.7k–10k 上拉到 3.3V |
-| PA0 / ADC1_IN0 | 光敏 AO | 分压后 ≤ 3.3V |
-| PE0 / EXTI0 | HC-SR501 OUT | 上升沿，示例 |
+| PC1（示例） | DHT11 DATA | 单总线，4.7k–10k 上拉到 3.3V |
+| PE0 | HC-SR501 OUT | 输入/轮询，示例 |
 | PD12 | LED + 电阻 | 状态指示 |
 | PA9 / PA10 | USB-TTL | USART1，115200 |
 
@@ -123,16 +122,6 @@ DHT11 是单总线，不是 I2C：
 
 先写一个裸机测试：读 10 次，打印原始 5 字节和校验结果。
 
-### 光敏
-
-```text
-VCC  -> 3.3V
-GND  -> GND
-AO   -> ADC 输入（≤ 3.3V）
-```
-
-先用手遮挡/手电筒确认 ADC 值变化。
-
 ### HC-SR501
 
 ```text
@@ -153,7 +142,7 @@ OUT  -> GPIO（3.3V 高电平）
 4. 接 i.MX6ULL，先 125 kbps，再 500 kbps。
 5. `candump` 能看到 STM32 的 0x301。
 6. 接 DHT11，读 10 次，校验和正确、数据合理。
-7. 接光敏/PIR，确认 ADC/GPIO 变化。
+7. 接 PIR，确认 PE0 电平变化和消抖输出。
 8. 记录接线照片、日志、commit，打 `a-baseline` tag。
 
 ---

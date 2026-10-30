@@ -16,6 +16,7 @@
 | HC-SR501 | `HC-SR501/HC-SR501`（从 `gpio.c` 抽出） | `firmware/modules/pir` | 已导入 |
 | FreeRTOS | `freertos/freertos` | `firmware/reference/freertos` | 参考 |
 | AHT20 | `aht20/aht20`（LibDriver） | `firmware/reference/aht20` | B 参考 |
+| AImate 集成工程 | `AImate/AImate` | `firmware/reference/AImate` | 协议/上报参考 |
 
 丢弃：
 
@@ -25,6 +26,11 @@
 - `DHT11/dht/`（旧版，位对齐逻辑较早）
 - `aht20/AHT15/`（不同型号，不进入主线）
 - `can通讯/.git`（保留原仓库，不要把嵌套 git 带进新仓库）
+- `AImate/FreeRTOS/`、`AImate/Drivers/`、`AImate/.metadata/`、`AImate/Debug/`（只保留协议/应用参考）
+
+> **SocketCAN：没有。** 在 AImate 里搜索 `PF_CAN`、`SocketCAN`、`AF_CAN`、`can0` 均无结果；Linux 端代码需要新写。
+>
+> **光照：没有做。** 已从项目范围移除，不要再写“光照采集”。
 
 ---
 

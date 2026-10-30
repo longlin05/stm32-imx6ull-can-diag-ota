@@ -17,7 +17,8 @@
 ## TL;DR
 
 - **CAN**：初始化/滤波思路可复用；`can_test` 的主循环是“发一次、收一次”，不是周期协议，必须重写。
-- **DHT11 / PIR / 光照 / SocketCAN**：源码还没上传，审计只完成了一部分。
+- **DHT11 / PIR**：已从本地模块代码导入；**光照没做过，已移出**。
+- **SocketCAN**：在 AImate 目录里搜不到，Linux 端 baseline 缺失。
 - **AHT20**：A 项目不用，留给 B 项目做 i.MX6ULL 的 IIO 驱动。
 - **结论**：先补源码，再打 `a-baseline`；tag 不能指向一个只有文档的 scaffold。
 
@@ -113,8 +114,7 @@ LICENSE
 | CAN | `CAN-` @ `8a5d561` `can_test` | 能初始化/单次收发 | **复用初始化/滤波思路** | 已导入 `firmware/baseline`；重写周期主循环 |
 | DHT11 | `模块代码/DHT11/DHT11` | 能读，含位对齐/校验和 | **复用** | 已导入 `firmware/modules/dht11`；PC1，≥2s |
 | PIR | `模块代码/HC-SR501/HC-SR501` | 轮询/预热/消抖/2s 保持 | **复用** | 已导入 `firmware/modules/pir`；默认 PE0 |
-| 光照 | 待补：本地工程/板端 | ADC 能读，源码未上传 | **复用** | 仍需导入；越界判断 |
-| SocketCAN | 待补：本地工程/板端 | 能收发，源码未上传 | **重构** | 仍需导入/拆成 `gateway/can_rx` |
+| SocketCAN | AImate 中无 | 只有 STM32 端，没有 Linux 端 | **缺失** | 需要新写 `gateway/can_rx` |
 | AHT20 | `模块代码/aht20/aht20` | LibDriver，STM32 参考 | **移出 A baseline** | 给 B 项目 IIO 驱动参考 |
 
 > A 项目的温湿度用 DHT11；AHT20 不在 A 的 baseline 里，留给 B 项目做 i.MX6ULL 的 IIO 驱动。两者不要混。
@@ -124,7 +124,7 @@ DHT11 是单总线，不是 I2C：
 - 主机拉低至少 18 ms，再释放；
 - 读 40 bit：湿度 16 + 温度 16 + 校验 8；
 - 校验和 = 前 4 字节相加取低 8 位；
-- 采样间隔建议 ≥ 2 s，`0x301` 可以 500 ms 发送缓存值。
+- 采样间隔建议 ≥ 2 s，baseline 的 `0x112` 就是 2 s 一帧。
 
 ---
 
@@ -134,7 +134,7 @@ DHT11 是单总线，不是 I2C：
 
 现在新仓库里只有文档骨架：
 
-- 没有 DHT11/PIR/SocketCAN 源码；
+- 没有 SocketCAN 源码（AImate 里也搜不到）；
 - 没有 CAN 的 baseline 工程；
 - `git tag` 为空；
 - `docs/baseline-audit.md` 还是模板。
@@ -150,10 +150,12 @@ git commit -m "chore: import working CAN baseline"
 git add docs/baseline-audit.md
 git commit -m "docs: complete baseline audit"
 
-# 3. 确认能跑，再打 tag
-git tag -a a-baseline -m "baseline: CAN + DHT11 + PIR + SocketCAN working"
+# 3. 先打 STM32 侧基线 tag（SocketCAN 还没接）
+git tag -a a-baseline-stm32 -m "STM32 baseline: CAN + DHT11 + PIR"
 git push origin main
-git push origin a-baseline
+git push origin a-baseline-stm32
+
+# 等 Linux SocketCAN 接入、双机双向跑通后，再打完整的 a-baseline
 ```
 
 **不是不冻结，是冻结条件没满足。**
@@ -168,7 +170,7 @@ git push origin a-baseline
 | 2 | 没有版本号 | 串口只打印初始化信息 | 无法确认板子上跑的是哪版 | 加 `FW_VERSION`，串口/诊断都能读 |
 | 3 | 没有错误帧统计 | `can_test` 没处理 `CAN_IT_ERROR` | 丢帧无法定位 | 加错误计数、bus-off 回调 |
 | 4 | 构建产物进仓库 | `.metadata/`、`Debug/` | clone 很大、难读 | 新仓库只保留源码/工程文件 |
-| 5 | 模块源码分散/未上传 | DHT11/PIR/SocketCAN 不在 `CAN-` | baseline 不可复现 | 导入新仓库，补来源表 |
+| 5 | SocketCAN 源码缺失 | AImate 里搜不到 `PF_CAN`/`can0` | 双机 baseline 不完整 | 新写 `gateway/can_rx`，再打完整 `a-baseline` |
 
 ---
 
@@ -176,9 +178,10 @@ git push origin a-baseline
 
 ### 第 1 步：补 baseline
 
-- 导入 CAN/DHT11/PIR/光照/SocketCAN 源码；
+- CAN/DHT11/PIR 已导入；SocketCAN 仍缺失；
 - 填 `docs/baseline-audit.md` 的来源表；
-- 打 `a-baseline` tag；
+- 先打 `a-baseline-stm32`；
+- SocketCAN 接入后再打完整 `a-baseline`；
 - 更新 README 的“已有什么/没有什么”。
 
 ### 第 2 步：baseline 加固

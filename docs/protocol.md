@@ -7,20 +7,23 @@
 
 ## 1. 报文 ID 分配
 
-### 1.1 Baseline 应用帧
+### 1.1 Baseline 应用帧（沿用 AImate）
 
 | CAN ID | 方向 | 名称 | DLC | 周期/触发 | 说明 |
 |---|---|---|---|---|---|
-| `0x301` | STM32 → Linux | 环境数据 | 8 | 500 ms（发送缓存值） | DHT11 温湿度/光照/状态 |
-| `0x302` | STM32 → Linux | 状态/事件 | 8 | 500 ms / PIR | PIR、uptime、错误标志 |
-| `0x401` | Linux → STM32 | 命令 | 8 | 事件 | 控制命令 |
-| `0x402` | STM32 → Linux | 命令 ACK | 8 | 事件 | 执行结果 |
-| `0x403` | STM32 → Linux | 心跳 | 2 | 1 s | 节点在线/状态 |
+| `0x111` | STM32 → Linux | PIR 人体感应 | 8 | 翻转/5 s 保活 | event/state/raw/flags/timestamp |
+| `0x112` | STM32 → Linux | 温湿度 | 8 | 2 s | temp/hum ×100、seq、status |
+| `0x113` | STM32 → Linux | 心跳/状态 | 8 | 10 s | 版本、uptime、错误计数 |
+| `0x221` | Linux → STM32 | 配置写入 | 8 | 事件 | **预留，MCU 尚未实现** |
+| `0x222` | Linux → STM32 | 查询请求 | 8 | 事件 | **预留，MCU 尚未实现** |
+| `0x228` | Linux → STM32 | ACK | 8 | 事件 | **预留，MCU 尚未实现** |
 
-Baseline 帧保留，不重新定义；新功能使用下面的诊断/OTA ID。
+Baseline 帧沿用 AImate，不重新定义；完整字段见 `firmware/reference/AImate/Docs/CAN_Protocol.md`。
 
-> DHT11 分辨率是 1 °C / 1 %RH；`0x301` 里的 `×100` 只是统一格式，不代表传感器精度。
-> DHT11 实际采样 ≥ 2 s，500 ms 周期发送的是缓存值。
+> AImate 当前实现是 **STM32 → Linux 单向上报**；`0x221/0x222/0x228` 只有 ID 和帧格式，MCU 端尚未实现。  
+> 本项目要补的增量之一就是 Linux → STM32 双向命令/ACK。  
+> DHT11 分辨率 1 °C / 1 %RH；`0x112` 的 ×100 只是统一格式，不代表传感器精度。  
+> 光照传感器未做，不进入协议。
 
 ### 1.2 诊断帧（ISO-TP / UDS）
 
@@ -204,7 +207,7 @@ DTC 采用 3 字节编码，例如 `0xC001` 表示为 `C0 01 00`。
 | `0xC001` | DHT11 timeout / checksum | 单总线连续失败 3 次 | 连续成功 5 次 |
 | `0xC002` | CAN bus-off | 检测到 bus-off | 恢复且收到有效帧 |
 | `0xC003` | OTA CRC failure | CRC32 不匹配 | 下一次升级成功 |
-| `0xC004` | Sensor out of range | 温湿度/光照越界 | 回到范围并持续 10 s |
+| `0xC004` | Sensor out of range | 温湿度越界 | 回到范围并持续 10 s |
 | `0xC005` | Flash error | 擦除/写入/校验失败 | 重新写入成功 |
 
 状态位：
@@ -337,8 +340,8 @@ Linux                          STM32
 
 ## 7. 兼容与版本
 
-- Baseline 帧 `0x301/0x302/0x401/0x402/0x403` 不改字段，只加错误计数/状态位。
+- Baseline 帧 `0x111/0x112/0x113` 沿用 AImate，不改字段；`0x221/0x222/0x228` 从预留变成实现。
 - 新协议从 `v0.1` 开始；字段变更必须更新本文件并写 changelog。
 - 所有自定义 CRC8：poly `0x07`，init `0x00`，不反射。
 - DHT11 的校验和是前 4 字节相加取低 8 位，**不是 CRC8**，不要和 CAN 协议 CRC 混用。
-- DHT11 实际采样间隔建议 ≥ 2 s；`0x301` 每 500 ms 发送的是最近一次有效缓存值。
+- DHT11 实际采样间隔建议 ≥ 2 s；`0x112` 就是 2 s 一帧。

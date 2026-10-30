@@ -25,14 +25,14 @@
 
 | 模块 | 基线（已完成，不重写） | 本项目新增 |
 |---|---|---|
-| 双机 CAN | 500 kbps 能收发 | 错误帧统计、bus-off 恢复、总线负载测试 |
-| 传感器 | DHT11 / 光照 / PIR 能读 | 健康检查、超时/越界、DTC 触发 |
-| 应用协议 | `0x301/0x302/0x401/0x402/0x403` | ISO-TP、UDS、DTC、OTA |
-| SocketCAN | 收发程序 | 诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| 双机 CAN | STM32→Linux 500 kbps 已通；Linux→STM32 预留未实现 | 双向命令/ACK、错误帧统计、bus-off 恢复、总线负载测试 |
+| 传感器 | DHT11 / PIR 能读（光照未做） | 健康检查、超时/越界、DTC 触发 |
+| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留 | ISO-TP、UDS、DTC、OTA |
+| SocketCAN | 无（源码缺失） | 网关、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 升级 | 无 | Bootloader、A/B、CRC32、续传、回滚 |
 | 测试 | 基本没有 | 故障注入、24h/72h、P99、50 次 OTA |
 
-> DHT11 是单总线，不是 I2C；采样间隔建议 ≥ 2 s，`0x301` 可以 500 ms 发送缓存值。AHT20 模块不可用，已从本项目移除。
+> DHT11 是单总线，不是 I2C；采样间隔 ≥ 2 s，baseline 的 `0x112` 就是 2 s 一帧。光照传感器未做，已移出本项目；AHT20 留给 B 项目。
 
 **原则：**
 
