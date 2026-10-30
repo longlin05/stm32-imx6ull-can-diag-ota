@@ -29,8 +29,8 @@
 | 模块 | 来源 | 现状 |
 |---|---|---|
 | CAN | `CAN-` @ `8a5d561` | 已导入 `firmware/baseline`；`can_test` 主循环只发一次，需重写 |
-| DHT11 | `模块代码/DHT11/DHT11` | 已导入 `firmware/modules/dht11`；PC1，≥2s 采样 |
-| PIR | `模块代码/HC-SR501/HC-SR501` | 已导入 `firmware/modules/pir`；默认 PE0，轮询/消抖 |
+| DHT11 | `模块代码/DHT11/DHT11` | 已迁到外设仓库 `dht11/`；PC1，≥2s 采样 |
+| PIR | `模块代码/AImate/.../driver_pir.*` | 已迁到外设仓库 `pir/`；默认 PC1，需改 PE0 避免冲突 |
 | SocketCAN | 待确认：本地工程/板端 | 仍缺；需要导入/重构成 `gateway/can_rx` |
 
 > 博客里写“复用”之前，先把这张表的“来源”填上；否则读者无法验证。
@@ -101,7 +101,7 @@ git log --oneline -10
 
 - [ ] STM32 能启动，串口有版本日志
 - [ ] DHT11 能读，校验和正确，数据合理
-- [ ] 光照/PIR 能读
+- [ ] PIR 能读（光照未做，不在范围）
 - [ ] 双机 CAN 500 kbps 能收发
 - [ ] `candump` 连续 10 分钟无错误帧
 - [ ] i.MX6ULL 能跑 SocketCAN 程序

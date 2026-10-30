@@ -1,6 +1,6 @@
 # firmware
 
-STM32F407 应用固件：传感器采集、CAN 应用帧、ISO-TP、UDS Server、DTC、OTA Client。
+STM32F407 应用固件：CAN baseline、AImate 协议参考、后续 ISO-TP/UDS/DTC/OTA。
 
 ## 目录
 
@@ -9,29 +9,34 @@ firmware/
 ├── baseline/                 # 旧 CAN 工程（只保留 Core + .ioc + .ld）
 │   ├── can_test/
 │   └── can_loopback_silence/
-├── modules/                  # 可复用传感器驱动
-│   ├── dht11/                # DHT11 单总线温湿度
-│   └── pir/                  # HC-SR501 轮询/消抖
-├── reference/                # 只作参考，不直接编进最终工程
-│   ├── freertos/             # FreeRTOSConfig + 任务示例
-│   └── aht20/                # LibDriver AHT20（给 B 项目参考）
+├── reference/
+│   └── AImate/               # 旧集成工程：协议、app_report、can.c、PIR/AHT20 驱动
 ├── README.md
 └── （后续新增）
     App/                      # 业务层：protocol/isotp/uds/dtc/ota
 ```
 
+## 外设模块去哪了
+
+DHT11、AHT20、HC-SR501、FreeRTOS 的独立代码已经移到单独仓库：
+
+```text
+https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
+```
+
+主仓库只保留 CAN baseline、AImate 协议/上报参考和后续诊断/OTA 代码，避免两个仓库重复维护同一份外设驱动。
+
 ## 重要说明
 
-- **没有提交 `Drivers/`、`Debug/`、`.metadata/`**。HAL/CMSIS 用 CubeMX 按 `.ioc` 生成。
+- 没有提交 `Drivers/`、`Debug/`、`.metadata/`；HAL/CMSIS 用 CubeMX 按 `.ioc` 生成。
 - `baseline/can_test` 只发一次、收一次，是 bring-up 示例，不是最终网关。
-- `modules/dht11` 默认 DATA = PC1；`modules/pir` 默认 OUT = PE0。
-  **不要两个都用 PC1**，A 项目里必须分开。
-- `reference/aht20` 是 STM32 的 LibDriver 集成，不是 Linux 驱动；B 项目要重写 IIO 驱动。
+- `reference/AImate` 是旧集成工程的参考代码，不是最终 App；A 项目最终用 DHT11/PIR。
+- `reference/AImate` 里仍然有 AHT20 代码，仅作 B 项目参考；不要把它当 Linux 驱动。
 
 ## 开发顺序
 
-1. baseline：CAN 收发、DHT11/PIR 读取；
-2. 错误帧统计、bus-off 恢复、`FW_VERSION`；
+1. CAN baseline：错误帧统计、bus-off 恢复、`FW_VERSION`；
+2. Linux → STM32 命令/ACK（`0x221/0x222/0x228`）；
 3. ISO-TP；
 4. UDS `0x10/0x3E/0x22`；
 5. UDS `0x19/0x14` + DTC；

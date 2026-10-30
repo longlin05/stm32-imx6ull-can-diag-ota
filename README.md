@@ -83,16 +83,14 @@ flowchart LR
 
 ### Baseline 来源
 
-| 模块 | 来源 | 导入位置 | 备注 |
+| 模块 | 来源 | 位置 | 备注 |
 |---|---|---|---|
-| CAN | `CAN-` @ `8a5d561` | `firmware/baseline/can_test`、`can_loopback_silence` | STM32 示例；主循环需重写 |
-| DHT11 | `模块代码/DHT11/DHT11` | `firmware/modules/dht11` | 单总线，PC1；≥2s 采样 |
-| PIR | `模块代码/HC-SR501/HC-SR501` | `firmware/modules/pir` | 轮询/消抖；默认 PE0 |
-| FreeRTOS | `模块代码/freertos/freertos` | `firmware/reference/freertos` | 任务划分参考 |
-| AHT20 | `模块代码/aht20/aht20` | `firmware/reference/aht20` | 给 B 项目参考，不是 A baseline |
-| SocketCAN | **待补**：本地工程/板端 | `gateway/` | 导入/重构成 `can_rx` |
+| CAN | `CAN-` @ `8a5d561` | `firmware/baseline/` | STM32 示例；主循环需重写 |
+| DHT11 / AHT20 / PIR / FreeRTOS | 旧外设工程 | 独立仓库：[DHT11-AHT20-RIR-Freertos](https://github.com/longlin05/DHT11-AHT20-RIR-Freertos) | 已迁出，主仓库不重复维护 |
+| AImate 协议/上报 | `模块代码/AImate` | `firmware/reference/AImate/` | `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留未实现 |
+| SocketCAN | **待补**：Linux 代码在本地虚拟机 | `gateway/` | 需要新写 `can_rx` |
 
-> 在打 `a-baseline` tag 之前，先把 SocketCAN 的来源补全；否则 tag 里没有完整的双机 baseline。
+> 在打完整 `a-baseline` 之前，先把 SocketCAN 的来源补全；当前只有 `a-baseline-stm32`。
 > 导入清单和清理规则见 [`docs/module-import.md`](docs/module-import.md)。
 
 ---

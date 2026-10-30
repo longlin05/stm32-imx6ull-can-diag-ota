@@ -8,15 +8,21 @@
 
 ## 1. 采用 / 丢弃
 
-| 模块 | 采用来源 | 目标目录 | 状态 |
+| 模块 | 采用来源 | 目标仓库/目录 | 状态 |
 |---|---|---|---|
-| CAN 基础示例 | `can通讯/can_test/can_test` | `firmware/baseline/can_test` | 已导入 |
-| CAN 回环示例 | `can通讯/can_loopback_silence/can_loopback_silence` | `firmware/baseline/can_loopback_silence` | 已导入 |
-| DHT11 | `DHT11/DHT11`（较新，含位对齐/校验和） | `firmware/modules/dht11` | 已导入 |
-| HC-SR501 | `HC-SR501/HC-SR501`（从 `gpio.c` 抽出） | `firmware/modules/pir` | 已导入 |
-| FreeRTOS | `freertos/freertos` | `firmware/reference/freertos` | 参考 |
-| AHT20 | `aht20/aht20`（LibDriver） | `firmware/reference/aht20` | B 参考 |
-| AImate 集成工程 | `AImate/AImate` | `firmware/reference/AImate` | 协议/上报参考 |
+| CAN 基础示例 | `can通讯/can_test/can_test` | 主仓库 `firmware/baseline/can_test` | 已导入 |
+| CAN 回环示例 | `can通讯/can_loopback_silence/can_loopback_silence` | 主仓库 `firmware/baseline/can_loopback_silence` | 已导入 |
+| DHT11 | `DHT11/DHT11`（较新，含位对齐/校验和） | 外设仓库 `dht11/` | 已迁出 |
+| HC-SR501 | `AImate/.../driver_pir.*`（已测试的 run-length 滤波） | 外设仓库 `pir/` | 已迁出 |
+| FreeRTOS | `freertos/freertos` | 外设仓库 `freertos/` | 已迁出 |
+| AHT20 | `AImate/.../driver_aht20.* + aht20_port.*` | 外设仓库 `aht20/` | 已迁出 |
+| AImate 集成工程 | `AImate/AImate` | 主仓库 `firmware/reference/AImate` | 协议/上报参考 |
+
+外设仓库：
+
+```text
+https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
+```
 
 丢弃：
 

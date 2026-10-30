@@ -51,7 +51,7 @@
 
 没有 DHT11、PIR、SocketCAN 的源码；也没有 AHT20。
 
-这些模块后来从本地 `模块代码/` 导入到新仓库的 `firmware/modules/` 和 `firmware/reference/`；SocketCAN 仍然缺失。导入清单见 `docs/module-import.md`。
+这些模块后来从本地 `模块代码/` 抽到独立外设仓库 `DHT11-AHT20-RIR-Freertos`；SocketCAN 仍然缺失。导入清单见 `docs/module-import.md`。
 
 ### 2.1 `can_test` 的主循环
 
@@ -112,10 +112,10 @@ LICENSE
 | 模块 | 来源 | 现状 | 决定 | 下一步 |
 |---|---|---|---|---|
 | CAN | `CAN-` @ `8a5d561` `can_test` | 能初始化/单次收发 | **复用初始化/滤波思路** | 已导入 `firmware/baseline`；重写周期主循环 |
-| DHT11 | `模块代码/DHT11/DHT11` | 能读，含位对齐/校验和 | **复用** | 已导入 `firmware/modules/dht11`；PC1，≥2s |
-| PIR | `模块代码/HC-SR501/HC-SR501` | 轮询/预热/消抖/2s 保持 | **复用** | 已导入 `firmware/modules/pir`；默认 PE0 |
+| DHT11 | `模块代码/DHT11/DHT11` | 能读，含位对齐/校验和 | **复用** | 已迁到外设仓库 `dht11/`；PC1，≥2s |
+| PIR | `模块代码/AImate/.../driver_pir.*` | 预热/消抖/2s 保持 | **复用** | 已迁到外设仓库 `pir/`；默认 PC1，需改 PE0 |
 | SocketCAN | AImate 中无 | 只有 STM32 端，没有 Linux 端 | **缺失** | 需要新写 `gateway/can_rx` |
-| AHT20 | `模块代码/aht20/aht20` | LibDriver，STM32 参考 | **移出 A baseline** | 给 B 项目 IIO 驱动参考 |
+| AHT20 | `模块代码/AImate/.../driver_aht20.*` | LibDriver，STM32 参考 | **移出 A baseline** | 已迁到外设仓库 `aht20/`；给 B 参考 |
 
 > A 项目的温湿度用 DHT11；AHT20 不在 A 的 baseline 里，留给 B 项目做 i.MX6ULL 的 IIO 驱动。两者不要混。
 
