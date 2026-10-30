@@ -10,7 +10,7 @@ firmware/
 ├── App/
 │   ├── Inc/
 │   │   ├── bsp_can.h
-│   │   ├── aht20.h
+│   │   ├── dht11.h
 │   │   ├── light.h
 │   │   ├── pir.h
 │   │   ├── protocol.h
@@ -20,7 +20,7 @@ firmware/
 │   │   └── ota.h
 │   └── Src/
 │       ├── bsp_can.c
-│       ├── aht20.c
+│       ├── dht11.c
 │       ├── light.c
 │       ├── pir.c
 │       ├── protocol.c

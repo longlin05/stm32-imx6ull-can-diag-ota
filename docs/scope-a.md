@@ -26,11 +26,13 @@
 | 模块 | 基线（已完成，不重写） | 本项目新增 |
 |---|---|---|
 | 双机 CAN | 500 kbps 能收发 | 错误帧统计、bus-off 恢复、总线负载测试 |
-| 传感器 | AHT20 / 光照 / PIR 能读 | 健康检查、超时/越界、DTC 触发 |
+| 传感器 | DHT11 / 光照 / PIR 能读 | 健康检查、超时/越界、DTC 触发 |
 | 应用协议 | `0x301/0x302/0x401/0x402/0x403` | ISO-TP、UDS、DTC、OTA |
 | SocketCAN | 收发程序 | 诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 升级 | 无 | Bootloader、A/B、CRC32、续传、回滚 |
 | 测试 | 基本没有 | 故障注入、24h/72h、P99、50 次 OTA |
+
+> DHT11 是单总线，不是 I2C；采样间隔建议 ≥ 2 s，`0x301` 可以 500 ms 发送缓存值。AHT20 模块不可用，已从本项目移除。
 
 **原则：**
 
@@ -88,7 +90,7 @@
 
 | DTC | 含义 | 触发条件 | 恢复条件 |
 |---|---|---|---|
-| `0xC001` | AHT20 timeout / CRC | I2C 连续失败 3 次 | 连续成功 5 次 |
+| `0xC001` | DHT11 timeout / checksum | 单总线连续失败 3 次 | 连续成功 5 次 |
 | `0xC002` | CAN bus-off | 检测到 bus-off | 恢复且收到有效帧 |
 | `0xC003` | OTA CRC failure | 升级包 CRC32 不匹配 | 下一次升级成功 |
 | `0xC004` | Sensor out of range | 温湿度/光照越界 | 回到范围并持续 10 s |

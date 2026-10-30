@@ -13,7 +13,7 @@
 基线已经具备：
 
 - STM32F407 与 i.MX6ULL 双机 CAN 500 kbps 通信；
-- AHT20 温湿度、光照、HC-SR501 人体感应采集；
+- DHT11 温湿度、光照、HC-SR501 人体感应采集；
 - Linux SocketCAN 收发程序。
 
 本项目在此基础上增加三个闭环：
@@ -35,7 +35,7 @@
 ```mermaid
 flowchart LR
     subgraph NODE["STM32F407 节点"]
-        S["Sensors: AHT20 / Light / PIR"]
+        S["Sensors: DHT11 / Light / PIR"]
         U["UDS Server + ISO-TP"]
         D["DTC Manager"]
         B["Bootloader / A-B Slots"]
@@ -81,6 +81,17 @@ flowchart LR
 
 **Baseline 只保留一句简历描述，不占主 bullet。** 主 bullet 全部留给新增能力。
 
+### Baseline 来源
+
+| 模块 | 来源 | 备注 |
+|---|---|---|
+| CAN | `CAN-` @ `5ea7a59` | 只有 STM32 loopback/test 示例；主循环需重写 |
+| DHT11 | 待补：本地工程/其他仓库 | 需导入源码和接线 |
+| PIR | 待补：本地工程/其他仓库 | 需导入源码和消抖逻辑 |
+| SocketCAN | 待补：本地工程/板端 | 需导入/重构成网关 `can_rx` |
+
+> 在打 `a-baseline` tag 之前，先把“待补”的来源补全；否则 tag 里没有真正的 baseline。
+
 ---
 
 ## 4. 项目范围（A 方案）
@@ -104,7 +115,7 @@ flowchart LR
 
 | DTC | 含义 | 触发条件 |
 |---|---|---|
-| `0xC001` | AHT20 超时/CRC 错 | I2C 连续失败 3 次 |
+| `0xC001` | DHT11 超时/校验和错 | 单总线连续失败 3 次 |
 | `0xC002` | CAN bus-off | 检测到 bus-off |
 | `0xC003` | OTA CRC 失败 | 升级包校验失败 |
 | `0xC004` | 传感器越界 | ADC/温湿度超出阈值 |
@@ -134,13 +145,15 @@ flowchart LR
 | STM32F407VGT6-Disc | CAN 节点 / UDS Server / Bootloader | 具体引脚按原理图确认 |
 | i.MX6ULL mini EMMC | Linux 网关 / 诊断客户端 / OTA Server | 板载 CAN 或 MCP2515 |
 | CAN 收发器 ×2 | 物理层 | 优先 SN65HVD230 / TJA1051T/3（3.3V） |
-| AHT20 | 温湿度 | I2C，3.3V，4.7k 上拉 |
+| DHT11 | 温湿度 | 单总线 GPIO，3.3V，4.7k–10k 上拉 |
 | 光敏模块 | 光照 | ADC，电压不超过 3.3V |
 | HC-SR501 | 人体感应 | 5V 供电，输出 3.3V，共地 |
 | 120Ω ×2 | 终端电阻 | 总线两端各一个 |
 | USB-TTL | 调试串口 | 115200 |
 | 示波器/逻辑分析仪 | 底层调试 | 排查晶振、SPI、CAN 波形 |
 
+> DHT11 是单总线，采样间隔建议 ≥ 2 s；`0x301` 每 500 ms 发送最近一次有效缓存值。
+>
 > 详细接线与 bring-up 步骤见 [`docs/bringup.md`](docs/bringup.md)，旧代码审计见 [`docs/baseline-audit.md`](docs/baseline-audit.md)。
 
 ---
@@ -262,7 +275,7 @@ CSDN：`blog.csdn.net/longlin101`
 5. CAN Bootloader：A/B 分区、CRC32、跳转、回滚
 6. OTA 实战：50 次升级与掉电测试
 7. Linux 网关：SocketCAN + 诊断 CLI + SQLite
-8. i.MX6ULL IIO 驱动：AHT20 从设备树到用户态
+8. i.MX6ULL 驱动：AHT20 不可用后的替代方案（IIO / hwmon，待定）
 9. PIR 字符驱动：threaded IRQ + poll + hrtimer
 10. 测试报告：24h/72h、P99、bus-off 数据
 

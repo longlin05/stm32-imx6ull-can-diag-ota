@@ -33,7 +33,7 @@
 | 04 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.3` | 待写 |  |
 | 05 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
 | 06 | Linux 网关：SocketCAN + 诊断 CLI + SQLite | `a-v1.0` | 待写 |  |
-| 07 | i.MX6ULL IIO 驱动：AHT20 从设备树到用户态 | `b-v0.1` | 待写 |  |
+| 07 | i.MX6ULL 驱动：AHT20 不可用后的替代方案（IIO/hwmon，待定） | `b-v0.1` | 待定 |  |
 | 08 | PIR 字符驱动：threaded IRQ + poll + hrtimer | `b-v1.0` | 待写 |  |
 | 09 | 测试报告：24h/72h、P99、bus-off 数据 | `a-v1.0` | 待写 |  |
 
@@ -47,7 +47,7 @@
 |---|---|
 | CAN 双机联调 | 保留；顶部加“本文是 baseline，完整项目见系列索引” |
 | USART 轮询/中断/DMA | 保留；作为基础文，不再作为简历主链接 |
-| AHT20/I2C 传感器 | 保留；新文写 IIO 驱动时链接它 |
+| AHT20/I2C 传感器 | 保留；AHT20 模块已不可用，当前不进入主线；如果 B 换新传感器再引用 |
 | 语音播报/以太网等 | 保留；不放进嵌入式主系列，最多作为外设实验 |
 
 不要删除旧文；旧文的阅读/点赞是社交证明。只做两件事：
@@ -98,7 +98,7 @@ STM32 + i.MX6ULL CAN 诊断与 OTA（01）：旧 CAN 项目基线审计
    - 不审计就直接写 UDS，会在旧坑上再踩一遍。
 
 2. **审计范围**
-   - STM32 固件：CAN、AHT20、光照、PIR、USART；
+   - STM32 固件：CAN、DHT11、光照、PIR、USART；AHT20 已弃用；
    - i.MX6ULL：SocketCAN 收发；
    - 硬件：收发器、终端电阻、共地；
    - 文档：旧 README/博客。
@@ -110,7 +110,7 @@ STM32 + i.MX6ULL CAN 诊断与 OTA（01）：旧 CAN 项目基线审计
    - 记录 commit。
 
 4. **逐模块结论**
-   - 复用：`bsp_can`、`aht20`、`light`、`pir`、`usart`；
+   - 复用：`bsp_can`、`dht11`、`light`、`pir`、`usart`；
    - 部分复用：SocketCAN 程序 → 重构成网关 `can_rx`；
    - 不直接复用：教程式 main、阻塞延时、无错误处理代码。
 
