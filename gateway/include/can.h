@@ -1,23 +1,20 @@
 #ifndef CAN_H
 #define CAN_H
 
-#include <linux/can.h>
-#include <stddef.h>
 #include <stdint.h>
+#include <linux/can.h>
 
-/* Bring the interface up (requires root). Returns 0 on success. */
-int can_bring_up(const char *ifname, int bitrate);
+/* Linux socketcan 平台适配层。
+   注意：STM32 侧用 HAL CAN 实现等价接口，不复用本文件（本文件依赖 Linux）。 */
 
-/* Create a SocketCAN raw socket and bind it to ifname. Returns fd or -1. */
-int can_open(const char *ifname);
-
-/* Install a CAN ID filter. Returns 0 on success. */
-int can_set_filter(int fd, const struct can_filter *filters, size_t count);
-
-/* Blocking read of one classic CAN frame. Returns bytes read or -1. */
-int can_read(int fd, struct can_frame *frame);
-
-/* Send one classic CAN frame. Returns 0 on success. */
-int can_send(int fd, uint32_t id, const uint8_t *data, uint8_t dlc);
+int  can_bring_up(const char *ifname, int bitrate);
+int  can_open(const char *ifname);
+int  can_read(int fd, struct can_frame *frame);
+int  can_write(int fd, const struct can_frame *frame);
+int  can_send(int fd, uint32_t can_id, const uint8_t *data, uint8_t dlc);
+int  can_poll(int fd, int timeout_ms);
+int  can_set_nonblock(int fd);
+int  can_enable_error_frames(int fd);
+uint32_t can_now_ms(void);
 
 #endif /* CAN_H */

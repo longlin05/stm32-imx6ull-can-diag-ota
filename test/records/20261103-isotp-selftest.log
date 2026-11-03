@@ -1,0 +1,45 @@
+# 2026-11-03 ISO-TP 核心自测
+
+命令：
+
+```bash
+make test
+# 或直接：
+./selftest
+```
+
+输出：
+
+```text
+{"len":1,"ok":true}
+{"len":7,"ok":true}
+{"len":8,"ok":true}
+{"len":20,"ok":true}
+{"len":1000,"ok":true}
+{"len":4095,"ok":true}
+```
+
+覆盖：
+
+- SF 边界：1、7 字节；
+- FF 边界：8 字节；
+- 多帧：20、1000 字节；
+- 最大：4095 字节；
+- CF 序号 0..15 回绕；
+- FF/CF/FC 状态机；
+- 进程内 A↔B 双向回显。
+
+未覆盖：
+
+- BS=8 / STmin=5ms（当前固定 BS=0 / STmin=0）；
+- 丢 CF / N_Cr 超时；
+- 错序 CF / 非法长度注入；
+- 真实 CAN 双机联调。
+
+vcan 对端测试：
+
+```bash
+./test/run_vcan.sh vcan0
+```
+
+`gw` 发 20 字节，`mock_ecu` 回显，输出 `"ok":true`。

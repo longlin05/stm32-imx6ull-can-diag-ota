@@ -7,6 +7,9 @@ Middlewares/Third_Party/FreeRTOS/
 build/
 Debug/
 Release/
+gateway/gw
+gateway/mock_ecu
+gateway/selftest
 *.o
 *.d
 *.elf

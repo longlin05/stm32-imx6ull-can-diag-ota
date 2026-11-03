@@ -1,67 +1,36 @@
 #include "can.h"
 
-#include <ctype.h>
 #include <errno.h>
-#include <linux/can/raw.h>
+#include <fcntl.h>
 #include <net/if.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <time.h>
+#include <linux/can/error.h>
+#include <linux/can/raw.h>
 
-static int can_ifname_ok(const char *ifname)
-{
-    if (ifname == NULL || ifname[0] == '\0' || strlen(ifname) >= IFNAMSIZ) {
-        return 0;
-    }
-    for (const char *p = ifname; *p != '\0'; ++p) {
-        if (!isalnum((unsigned char)*p) && *p != '_' && *p != '-') {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int can_bring_up(const char *ifname, int bitrate)
-{
+/* 程序内自动拉起 CAN 接口（需 root） */
+int can_bring_up(const char *ifname, int bitrate) {
     char cmd[256];
-    int n;
-
-    if (!can_ifname_ok(ifname) || bitrate <= 0) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* Bring it down first: an interface already up at another bitrate
-     * cannot be reconfigured with a plain "ip link set up". */
-    n = snprintf(cmd, sizeof cmd,
-                 "ip link set %s down 2>/dev/null; "
-                 "ip link set %s up type can bitrate %d 2>/dev/null",
-                 ifname, ifname, bitrate);
-    if (n < 0 || (size_t)n >= sizeof cmd) {
-        errno = ENAMETOOLONG;
-        return -1;
-    }
-
+    /* 先 down 再 up：若之前已按别的速率 up 过，直接 up 会失败 */
+    snprintf(cmd, sizeof cmd,
+             "ip link set %s down 2>/dev/null; ip link set %s up type can bitrate %d 2>/dev/null",
+             ifname, ifname, bitrate);
     return system(cmd) == 0 ? 0 : -1;
 }
 
-int can_open(const char *ifname)
-{
-    int sock;
+int can_open(const char *ifname) {
+    int sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     struct ifreq ifr;
     struct sockaddr_can addr;
 
-    if (!can_ifname_ok(ifname)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (sock < 0) {
-        perror("socket(PF_CAN)");
+        perror("socket");
         return -1;
     }
 
@@ -74,10 +43,10 @@ int can_open(const char *ifname)
     }
 
     memset(&addr, 0, sizeof addr);
-    addr.can_family = AF_CAN;
+    addr.can_family  = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
     if (bind(sock, (struct sockaddr *)&addr, sizeof addr) < 0) {
-        perror("bind(AF_CAN)");
+        perror("bind");
         close(sock);
         return -1;
     }
@@ -85,42 +54,54 @@ int can_open(const char *ifname)
     return sock;
 }
 
-int can_set_filter(int fd, const struct can_filter *filters, size_t count)
-{
-    if (fd < 0 || filters == NULL || count == 0) {
-        errno = EINVAL;
-        return -1;
-    }
-    if (setsockopt(fd, SOL_CAN_RAW, CAN_RAW_FILTER,
-                   filters, (socklen_t)(count * sizeof(*filters))) < 0) {
-        perror("setsockopt(CAN_RAW_FILTER)");
-        return -1;
-    }
-    return 0;
-}
-
-int can_read(int fd, struct can_frame *frame)
-{
+int can_read(int fd, struct can_frame *frame) {
     return (int)read(fd, frame, sizeof *frame);
 }
 
-int can_send(int fd, uint32_t id, const uint8_t *data, uint8_t dlc)
-{
-    struct can_frame frame;
+int can_write(int fd, const struct can_frame *frame) {
+    ssize_t n = write(fd, frame, sizeof *frame);
+    return n == (ssize_t)sizeof *frame ? 0 : -1;
+}
 
-    if (fd < 0 || data == NULL || dlc > 8) {
-        errno = EINVAL;
+int can_send(int fd, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
+    struct can_frame f;
+    memset(&f, 0, sizeof f);
+    f.can_id  = can_id;
+    f.can_dlc = dlc;
+    memcpy(f.data, data, dlc);
+    return can_write(fd, &f);
+}
+
+int can_poll(int fd, int timeout_ms) {
+    struct pollfd p;
+    int r;
+
+    p.fd      = fd;
+    p.events  = POLLIN;
+    p.revents = 0;
+
+    r = poll(&p, 1, timeout_ms);
+    if (r < 0)
         return -1;
-    }
+    if (r == 0)
+        return 0;
+    return 1;
+}
 
-    memset(&frame, 0, sizeof frame);
-    frame.can_id = id & CAN_SFF_MASK;
-    frame.can_dlc = dlc;
-    memcpy(frame.data, data, dlc);
-
-    if (write(fd, &frame, sizeof frame) != (ssize_t)sizeof frame) {
-        perror("write(CAN)");
+int can_set_nonblock(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0)
         return -1;
-    }
-    return 0;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
+int can_enable_error_frames(int fd) {
+    can_err_mask_t mask = CAN_ERR_MASK;
+    return setsockopt(fd, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &mask, sizeof mask);
+}
+
+uint32_t can_now_ms(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint32_t)(ts.tv_sec * 1000ull + ts.tv_nsec / 1000000ull);
 }
