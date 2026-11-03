@@ -17,7 +17,7 @@
 系列主线：
 
 ```text
-基线审计 → ISO-TP → UDS/DTC → Bootloader → OTA → Linux 网关 → IIO/PIR 驱动 → 测试报告
+基线审计 → 双向命令/ACK → ISO-TP → UDS/DTC → Bootloader → OTA → Linux 网关 → IIO/PIR 驱动 → 测试报告
 ```
 
 ---
@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | 00 | 从“CAN 能通”到“可诊断、可升级”：项目总览 | 仓库初始化 | 已发布 | https://blog.csdn.net/longlin101/article/details/169562720 |
 | 01 | 基线审计：从“能通”到“可复现” | `a-baseline-stm32` | 本地稿已更新，待发布 | 旧版：https://blog.csdn.net/longlin101/article/details/169562773 |
-| 02 | 双向命令/ACK：1000 次压测，以及 50 ms 超时为什么是“假丢包” | `a-v0.2-bidirectional` | 待写/待发布 |  |
+| 02 | 双向命令/ACK：1000 次压测，以及 50 ms 超时为什么是“假丢包” | `a-v0.2-bidirectional` | 本地稿完成，待发布 | [`docs/blog/02-bidirectional.md`](blog/02-bidirectional.md) |
 | 03 | ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin 与超时重传 | `a-v0.3` | 待写 |  |
 | 04 | UDS 子集：`0x10/0x3E/0x22/0x19/0x14` 与 DTC | `a-v0.4` | 待写 |  |
 | 05 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.5` | 待写 |  |
