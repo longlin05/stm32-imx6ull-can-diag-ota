@@ -88,10 +88,10 @@ flowchart LR
 | CAN | `CAN-` @ `8a5d561` | `firmware/baseline/` | STM32 示例；主循环需重写 |
 | DHT11 / AHT20 / PIR / FreeRTOS | 旧外设工程 | 独立仓库：[DHT11-AHT20-RIR-Freertos](https://github.com/longlin05/DHT11-AHT20-RIR-Freertos) | 已迁出，主仓库不重复维护 |
 | AImate 协议/上报 | `模块代码/AImate` | `firmware/reference/AImate/` | `0x111/0x112/0x113` 参考；双向命令/ACK 已在 `My_AI` 工程补全 |
-| SocketCAN | 本地虚拟机 `my_ai` | `gateway/src/can.c`、`can_recv.c`（接收参考） | `my_ai` 已实现命令/ACK + 统计；主仓库 gateway 仍是接收参考 |
+| SocketCAN / ISO-TP | 本地虚拟机 `gateway` | `gateway/` | ISO-TP 核心 + vcan 自测；UDS 下一步 |
 
 > 通信层已完成：1000/1000 命令、0 重试、P99 22.06 ms，tag `a-v0.2-bidirectional`。
-> 主仓库 `gateway/` 只是接收参考；完整 Linux 端在本地虚拟机 `my_ai`。
+> ISO-TP 核心已入库：SF/FF/CF/FC，selftest 覆盖 1/7/8/20/1000/4095 字节。
 > 导入清单和清理规则见 [`docs/module-import.md`](docs/module-import.md)。
 
 ---
@@ -203,19 +203,34 @@ ip -details -statistics link show can0
 candump -ta can0
 ```
 
-### 7.3 交叉编译网关
+### 7.3 编译网关
 
 ```bash
-arm-linux-gnueabihf-gcc -O2 -Wall -Wextra -pthread \
-  -o can-gateway gateway/*.c \
-  -lsqlite3 -lmosquitto
+cd gateway
+# 本机语法验证 / vcan
+make
+make test
+
+# 交叉编译到 i.MX6ULL：先 source NXP SDK 环境
+. /opt/fsl-imx-x11/4.1.15-2.1.0/environment-setup-cortexa7hf-neon-poky-linux-gnueabi
+make
+```
+
+产物：
+
+```text
+gateway/gw
+gateway/mock_ecu
+gateway/selftest
 ```
 
 ### 7.4 运行
 
 ```bash
-scp can-gateway root@<board-ip>:/usr/bin/
-ssh root@<board-ip> systemctl restart can-gateway
+scp gateway/gw root@<board-ip>:/home/root/
+ssh root@<board-ip>
+chmod +x /home/root/gw
+sudo /home/root/gw can0
 ```
 
 ---
@@ -224,7 +239,8 @@ ssh root@<board-ip> systemctl restart can-gateway
 
 | 测试 | 目标 | 状态 |
 |---|---|---|
-| ISO-TP 单帧/多帧 | 4 KB 传输 0 错误 | 待实现 |
+| ISO-TP 单帧/多帧 | 4095 字节 0 错误 | 核心通过：selftest 1/7/8/20/1000/4095；vcan 20 字节回显通过 |
+| ISO-TP BS/STmin | BS=8 / STmin=5ms | 待实现（当前 BS=0 / STmin=0） |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | 待实现 |
 | UDS `0x19/0x14` | 5 类 DTC 可读/可清 | 待实现 |
 | Bootloader A/B | 两个分区都能启动 | 待实现 |
@@ -239,8 +255,10 @@ ssh root@<board-ip> systemctl restart can-gateway
 ## 9. Roadmap
 
 - [x] 创建仓库骨架
-- [ ] 完成 baseline 审计，打 `a-baseline` tag
-- [ ] ISO-TP：SF / FF / CF / FC
+- [x] 完成 baseline 审计，打 `a-baseline-stm32`
+- [x] 双向命令/ACK，打 `a-v0.2-bidirectional`
+- [x] ISO-TP：SF / FF / CF / FC（BS=0 / STmin=0）
+- [ ] ISO-TP：BS=8 / STmin=5ms
 - [ ] UDS：`0x10 / 0x3E / 0x22`
 - [ ] UDS：`0x19 / 0x14` + DTC 存储
 - [ ] Bootloader：A/B、CRC32、跳转

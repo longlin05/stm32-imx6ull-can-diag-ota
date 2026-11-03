@@ -43,9 +43,9 @@
 
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
-| A-IT-01 | 单帧请求/响应 | `0x22 0xF186` | 收到正响应 | 待执行 |  |
-| A-IT-02 | 多帧 4 KB | 发送 4 KB 数据 | 0 错误、长度一致 | 待执行 |  |
-| A-IT-03 | BlockSize/STmin | 改 BS/STmin 重复 | 不超时、不乱序 | 待执行 |  |
+| A-IT-01 | 单帧 SF | 1 / 7 字节 | 收发一致 | **通过**：selftest 1、7 字节 | `gateway/selftest` 输出 |
+| A-IT-02 | 多帧 4095 字节 | FF + CF | 0 错误、长度一致 | **通过**：selftest 8/20/1000/4095；vcan 20 字节回显 | `gateway/selftest`、`test/run_vcan.sh` |
+| A-IT-03 | BlockSize/STmin | 改 BS/STmin 重复 | 不超时、不乱序 | 待实现：当前 BS=0 / STmin=0 |  |
 | A-IT-04 | 丢帧重传 | 中途丢 1 帧 | N_Cr 超时后重传成功 | 待执行 |  |
 | A-IT-05 | 错序/长度错 | 注入错误 CF | 丢弃并计数，不崩溃 | 待执行 |  |
 

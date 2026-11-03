@@ -1,78 +1,36 @@
-# gateway
+# gateway — 诊断/升级网关（骨架阶段）
 
-i.MX6ULL Linux 网关：SocketCAN 收包、AImate 协议解析；后续加 ISO-TP/UDS/OTA/SQLite/MQTT。
+在 imx6ull 上做 CAN 诊断/升级网关：南向 ISO-TP + UDS，北向 v1 只做 CLI + JSON。
 
-## 当前内容
+- 设计契约：[DESIGN.md](DESIGN.md)
+- 字节级协议：[PROTOCOL.md](PROTOCOL.md)（STM32 侧实现参照它）
 
-```text
-gateway/
-├── include/
-│   ├── can.h              # SocketCAN 封装
-│   └── can_protocol.h     # AImate 协议定义（从旧工程复制）
-├── src/
-│   ├── can.c              # open/filter/read/send/bring-up
-│   └── can_recv.c         # 接收并解析 0x111/0x112/0x113/0x221/0x222/0x228
-├── Makefile
-└── README.md
-```
+## 当前状态
 
-## 编译
+- ✅ 平台无关 ISO-TP 核心（[include/isotp.h](include/isotp.h) / [src/isotp.c](src/isotp.c)）：SF/FF/CF/FC 状态机，只走收发/定时回调，STM32 复用本文件。
+- ✅ Linux socketcan 适配层（[src/can.c](src/can.c)）。
+- ✅ vcan 自测对端（[test/mock_ecu.c](test/mock_ecu.c)）。
+- ✅ 免 root 进程内自测（[test/selftest.c](test/selftest.c)）。
+- ⬜ UDS 服务层 + CLI（下一步）。
 
-本机（Linux）：
+## 构建
 
 ```bash
-cd gateway
+make            # 本机 x86 语法验证，产物 gw / mock_ecu / selftest
+make test       # 进程内自测（免 root，验证 ISO-TP 状态机）
+# 交叉编译到 imx6ull：先 source NXP SDK 环境脚本，再 make
+. /opt/fsl-imx-x11/4.1.15-2.1.0/environment-setup-cortexa7hf-neon-poky-linux-gnueabi
 make
 ```
 
-交叉编译 i.MX6ULL：
+## vcan 自测
 
 ```bash
-make clean
-make CC=arm-linux-gnueabihf-gcc
+./test/run_vcan.sh vcan0
+# 或手动：
+sudo ip link add vcan0 type vcan && sudo ip link set vcan0 up
+./mock_ecu vcan0 &
+./gw vcan0
 ```
 
-产物：`gateway/build/can_recv`。
-
-## 运行
-
-先在板子上拉起 CAN：
-
-```bash
-sudo ip link set can0 down
-sudo ip link set can0 up type can bitrate 500000 sample-point 0.875
-ip -details -statistics link show can0
-```
-
-再运行：
-
-```bash
-sudo ./build/can_recv can0
-```
-
-输出示例：
-
-```text
-CAN receiver on can0 (AImate 0x111/0x112/0x113, cfg 0x221/0x222/0x228)
-[PIR] event=1 state=1 raw=1 flags=0x03 ts=123456ms
-[ENV] temp=24.56 C hum=55.20 %RH status=0 drv=0 seq=42
-[HB] uptime=120s tx_drop=0 fw=0x10 health=0x03
-```
-
-## 协议
-
-直接复用 AImate：
-
-- `0x111` PIR；
-- `0x112` 温湿度；
-- `0x113` 心跳；
-- `0x221/0x222/0x228` Linux → STM32 命令/ACK，**已在本地 `my_ai` 工程实现**；本目录只做接收/打印参考。
-
-完整字段见 `include/can_protocol.h` 或主仓库 `firmware/reference/AImate/Docs/CAN_Protocol.md`。
-
-## 已知限制
-
-- `can_bring_up()` 用 `system("ip link ...")`，需要 root；生产环境应改用 netlink。
-- 当前只做接收/打印，没有 SQLite/MQTT/ISO-TP/UDS/OTA。
-- 本目录的 `0x221/0x222/0x228` 只打印，未做真正命令/ACK；完整实现见本地 `my_ai` 工程。
-- 没有 `epoll`；下一步改成 `epoll` + 有界队列。
+`gw` 发 20 字节测试消息，`mock_ecu` 原样回显，`gw` 校验通过输出 `"ok":true`。
