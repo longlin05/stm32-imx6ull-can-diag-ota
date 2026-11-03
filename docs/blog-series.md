@@ -27,14 +27,14 @@
 | 编号 | 标题 | 对应里程碑 | 状态 | 链接 |
 |---|---|---|---|---|
 | 00 | 从“CAN 能通”到“可诊断、可升级”：项目总览 | 仓库初始化 | 已发布 | https://blog.csdn.net/longlin101/article/details/169562720 |
-| 01 | 基线审计：旧 CAN 项目哪些能复用、哪些要改 | `a-baseline` | 已发布，待补证据/重写 | https://blog.csdn.net/longlin101/article/details/169562773 |
-| 02 | ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin 与超时重传 | `a-v0.1` | 待写 |  |
-| 03 | UDS 子集：`0x10/0x3E/0x22/0x19/0x14` 与 DTC | `a-v0.2` | 待写 |  |
-| 04 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.3` | 待写 |  |
-| 05 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
-| 06 | Linux 网关：SocketCAN + 诊断 CLI + SQLite | `a-v1.0` | 待写 |  |
-| 07 | i.MX6ULL 驱动：AHT20 不可用后的替代方案（IIO/hwmon，待定） | `b-v0.1` | 待定 |  |
-| 08 | PIR 字符驱动：threaded IRQ + poll + hrtimer | `b-v1.0` | 待写 |  |
+| 01 | 基线审计：从“能通”到“可复现” | `a-baseline-stm32` | 本地稿已更新，待发布 | 旧版：https://blog.csdn.net/longlin101/article/details/169562773 |
+| 02 | 双向命令/ACK：1000 次压测，以及 50 ms 超时为什么是“假丢包” | `a-v0.2-bidirectional` | 待写/待发布 |  |
+| 03 | ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin 与超时重传 | `a-v0.3` | 待写 |  |
+| 04 | UDS 子集：`0x10/0x3E/0x22/0x19/0x14` 与 DTC | `a-v0.4` | 待写 |  |
+| 05 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.5` | 待写 |  |
+| 06 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
+| 07 | Linux 网关：SocketCAN + 诊断 CLI + SQLite | `a-v1.0` | 待写 |  |
+| 08 | i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备 | `b-v0.1` | 待写 |  |
 | 09 | 测试报告：24h/72h、P99、bus-off 数据 | `a-v1.0` | 待写 |  |
 
 > 发布后把链接补进表格，并把系列索引放到 CSDN 个人主页/置顶。
@@ -98,8 +98,8 @@ STM32 + i.MX6ULL CAN 诊断与 OTA（01）：旧 CAN 项目基线审计
    - 不审计就直接写 UDS，会在旧坑上再踩一遍。
 
 2. **审计范围**
-   - STM32 固件：CAN、DHT11、光照、PIR、USART；AHT20 已弃用；
-   - i.MX6ULL：SocketCAN 收发；
+   - STM32 固件：CAN、DHT11、PIR、USART；AHT20 留给 B；
+   - i.MX6ULL：SocketCAN 收发、命令/ACK；
    - 硬件：收发器、终端电阻、共地；
    - 文档：旧 README/博客。
 
@@ -110,29 +110,32 @@ STM32 + i.MX6ULL CAN 诊断与 OTA（01）：旧 CAN 项目基线审计
    - 记录 commit。
 
 4. **逐模块结论**
-   - 复用：`bsp_can`、`dht11`、`light`、`pir`、`usart`；
-   - 部分复用：SocketCAN 程序 → 重构成网关 `can_rx`；
-   - 不直接复用：教程式 main、阻塞延时、无错误处理代码。
+   - 复用：CAN 初始化/滤波、`dht11`、`pir`；
+   - 重构：SocketCAN 程序 → `my_ai`；
+   - 不直接复用：教程式 main、阻塞延时、无错误处理代码；
+   - 移出：光照、AHT20。
 
 5. **发现的坑**
    - 错误帧没统计；
    - 没有版本号；
    - 失败没有错误码；
-   - Flash 没有分区表；
+   - 50 ms 超时造成“假丢包”；
+   - 100 ms 任务 tick 造成 100 ms RTT；
    - 日志不可复现。
 
 6. **基线冻结**
-   - 打 `a-baseline` tag；
+   - 先打 `a-baseline-stm32`；
+   - 双向命令/ACK 通过后打 `a-v0.2-bidirectional`；
    - README 写清楚“已有什么/没有什么”；
    - 新功能从下一个 commit 开始。
 
 7. **下一步**
-   - 先加错误帧统计和版本号；
-   - 再进 ISO-TP。
+   - ISO-TP；
+   - 再进 UDS/DTC。
 
 8. **仓库/commit**
    - 链接到本仓库；
-   - 贴 `a-baseline` tag。
+   - 贴 `a-baseline-stm32` / `a-v0.2-bidirectional` tag。
 
 ---
 
@@ -141,12 +144,13 @@ STM32 + i.MX6ULL CAN 诊断与 OTA（01）：旧 CAN 项目基线审计
 | 时间 | 文章 | 说明 |
 |---|---|---|
 | 第 1 周 | 00 总览 + 01 基线审计 | 先把“为什么做”讲清楚 |
-| 第 2 周 | 02 ISO-TP | 有抓包/多帧日志再发 |
-| 第 3–4 周 | 03 UDS/DTC | 有诊断截图再发 |
-| 第 5–6 周 | 04 Bootloader | 有 A/B 启动日志再发 |
-| 第 7 周 | 05 OTA | 有 50 次/掉电数据再发 |
-| 第 8 周 | 06 网关 + 09 测试报告 | 用数据收尾 A |
-| 第 9–11 周 | 07 IIO + 08 PIR | B 项目单独成系列 |
-| 第 12 周 | 系列索引收尾 | 补链接、置顶 |
+| 第 2 周 | 02 双向命令/ACK | 有 1000 次压测/超时数据再发 |
+| 第 3 周 | 03 ISO-TP | 有抓包/多帧日志再发 |
+| 第 4–5 周 | 04 UDS/DTC | 有诊断截图再发 |
+| 第 6–7 周 | 05 Bootloader | 有 A/B 启动日志再发 |
+| 第 8 周 | 06 OTA | 有 50 次/掉电数据再发 |
+| 第 9 周 | 07 网关 + 10 测试报告 | 用数据收尾 A |
+| 第 10–12 周 | 08 IIO + 09 PIR | B 项目单独成系列 |
+| 第 13 周 | 系列索引收尾 | 补链接、置顶 |
 
 不要为了“周更”发空文。**一个里程碑一篇，写完再发。**
