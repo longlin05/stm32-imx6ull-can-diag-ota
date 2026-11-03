@@ -25,10 +25,10 @@
 
 | 模块 | 基线（已完成，不重写） | 本项目新增 |
 |---|---|---|
-| 双机 CAN | STM32→Linux 500 kbps 已通；Linux→STM32 预留未实现 | 双向命令/ACK、错误帧统计、bus-off 恢复、总线负载测试 |
+| 双机 CAN | STM32→Linux 500 kbps 已通；Linux→STM32 命令/ACK 已通 | 错误帧统计、bus-off 恢复、总线负载测试 |
 | 传感器 | DHT11 / PIR 能读（光照未做） | 健康检查、超时/越界、DTC 触发 |
-| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留 | ISO-TP、UDS、DTC、OTA |
-| SocketCAN | 基础接收/解析（`can_recv.c`） | epoll、双向命令/ACK、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 已实现 | ISO-TP、UDS、DTC、OTA |
+| SocketCAN | `my_ai`：收发、命令/ACK、丢包/RTT 统计 | epoll、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 升级 | 无 | Bootloader、A/B、CRC32、续传、回滚 |
 | 测试 | 基本没有 | 故障注入、24h/72h、P99、50 次 OTA |
 

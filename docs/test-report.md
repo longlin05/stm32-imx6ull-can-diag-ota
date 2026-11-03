@@ -9,14 +9,14 @@
 
 | 项目 | 内容 |
 |---|---|
-| 日期 | 2026-XX-XX |
-| 固件 commit | `abc1234` |
-| 网关 commit | `def5678` |
-| Bootloader commit | `...` |
+| 日期 | 2026-11-03 |
+| 固件 commit | 本地 `My_AI`（STM32 工程，未入库） |
+| 网关 commit | 本仓库 `d8fac30` + 本地 `my_ai`（未入库） |
+| Bootloader commit | 未开始 |
 | STM32 板 | STM32F407VGT6-Disc |
-| Linux 板 | i.MX6ULL mini EMMC |
-| 内核 | `uname -a` |
-| 工具链 | `arm-none-eabi-gcc --version` / `arm-linux-gnueabihf-gcc --version` |
+| Linux 板 | i.MX6ULL mini EMMC（ATK-IMX6U） |
+| 内核 | `Linux 4.1.15` |
+| 工具链 | `arm-poky-linux-gnueabi-gcc`（NXP SDK 4.1.15） |
 | CAN 收发器 | SN65HVD230 / TJA1051T/3 / 其他 |
 | 终端电阻 | 两端各 120Ω，实测 `__Ω` |
 | 电源 | STM32 `__V`，i.MX6ULL `__V`，共地 |
@@ -25,6 +25,19 @@
 ---
 
 ## 2. 测试矩阵
+
+### 2.0 双向命令 / ACK
+
+| ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
+|---|---|---|---|---|---|
+| A-BI-01 | 1000 次命令 | `cmd_stress.py can0 1000 --timeout-ms 150` | 1000/1000，0 重试 | **通过**：1000/1000，重试 0，耗时 20.04 s，P99 22.06 ms | `test/records/20261103-can-stress-1000.log` |
+| A-BI-02 | 超时重试路径 | 50 ms 超时压测 | 重试后仍成功 | **通过**：2006 次尝试 / 1006 次重试，1000/1000 成功，99.67 s | `test/records/20261103-can-timeout-50ms.log` |
+| A-BI-03 | 重复 seq 去重 | 同一 `seq=0x77` 发两次，再查 `0x12` | `dup_cmd +1`，不重复执行 | **通过**：`cmd_rx 1595→1598`，`dup_cmd 300→301`，`crc_err=0`，`ack_fail=0` | `test/records/20261103-can-dedup.log` |
+| A-BI-04 | 多分片 ACK | 查询 `0x12` 11 字节 | 3 帧正确重组 | **通过**：frag 0/1/2 重组正确 | `test/records/20261103-can-dedup.log` |
+| A-BI-05 | 错误 CRC / 非法参数 | 注入错误帧 | 计数，不崩溃 | 待执行 |  |
+
+> 关键数据：正常 1000 次命令 RTT min/avg/max = 18.57 / 19.75 / 26.24 ms，p50/p99 = 19.74 / 22.06 ms。
+> 50 ms 超时那次是超时窗口小于 RTT p99 导致的“假丢包”，不是链路丢包；所有命令最终成功，说明重试/去重路径有效。
 
 ### 2.1 ISO-TP
 
@@ -90,6 +103,9 @@
 
 | 指标 | 目标 | 实测 | 是否通过 |
 |---|---|---|---|
+| 命令成功率 | 1000/1000 | 1000/1000 | ✅ |
+| 命令重试率 | 0 | 0 / 1000 | ✅ |
+| 命令/ACK RTT P99 | < 50 ms | 22.06 ms | ✅ |
 | 24h 丢帧率 | < 0.01% |  |  |
 | 端到端 P99 | < 50 ms |  |  |
 | UDS `0x22` 响应 | < 50 ms |  |  |

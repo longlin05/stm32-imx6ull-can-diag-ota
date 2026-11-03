@@ -14,16 +14,57 @@
 | `0x111` | STM32 → Linux | PIR 人体感应 | 8 | 翻转/5 s 保活 | event/state/raw/flags/timestamp |
 | `0x112` | STM32 → Linux | 温湿度 | 8 | 2 s | temp/hum ×100、seq、status |
 | `0x113` | STM32 → Linux | 心跳/状态 | 8 | 10 s | 版本、uptime、错误计数 |
-| `0x221` | Linux → STM32 | 配置写入 | 8 | 事件 | **预留，MCU 尚未实现** |
-| `0x222` | Linux → STM32 | 查询请求 | 8 | 事件 | **预留，MCU 尚未实现** |
-| `0x228` | Linux → STM32 | ACK | 8 | 事件 | **预留，MCU 尚未实现** |
+| `0x221` | Linux → STM32 | 配置/动作命令 | 8 | 事件 | **已实现**，CRC16 |
+| `0x222` | Linux → STM32 | 查询命令 | 8 | 事件 | **已实现**，CRC16 |
+| `0x228` | STM32 → Linux | 命令 ACK | 8 | 事件 | **已实现**，按 frag 分片 |
 
-Baseline 帧沿用 AImate，不重新定义；完整字段见 `firmware/reference/AImate/Docs/CAN_Protocol.md`。
+Baseline 帧沿用 AImate，不重新定义；完整字段见 `firmware/reference/AImate/Docs/CAN_Protocol.md` 和 Linux 工程 `linux_quickstart.md`。
 
-> AImate 当前实现是 **STM32 → Linux 单向上报**；`0x221/0x222/0x228` 只有 ID 和帧格式，MCU 端尚未实现。  
-> 本项目要补的增量之一就是 Linux → STM32 双向命令/ACK。  
+> `0x228` 的 ID 位域里源地址仍是 `0x2`（最初预留定义），实际发送方是 STM32；接收按完整 ID `0x228` 匹配，不要用源地址位判断方向。
 > DHT11 分辨率 1 °C / 1 %RH；`0x112` 的 ×100 只是统一格式，不代表传感器精度。  
 > 光照传感器未做，不进入协议。
+
+### 1.1.1 命令帧 `0x221/0x222`
+
+```text
+offset 0   cmd       u8    命令码
+offset 1   seq       u8    每条新命令 +1；重传复用同一 seq
+offset 2..5 args     u8[4] 小端，未用填 0
+offset 6..7 crc16    u16le CRC-16/CCITT-FALSE，覆盖 offset 0..5
+```
+
+CRC 参数：`poly=0x1021`、`init=0xFFFF`、不反射、`xorout=0`。
+
+### 1.1.2 ACK 帧 `0x228`
+
+```text
+offset 0   cmd       u8    回显命令码
+offset 1   seq       u8    回显 seq
+offset 2   status    u8    0=OK / 1=未知命令 / 2=参数错误 / 3=不支持
+offset 3   frag      u8    分片号，从 0 开始
+offset 4..7 data     u8[4] 载荷分片；不足补 0
+```
+
+- 载荷按 4 字节分片；接收端按 `cmd + seq + frag` 重组。
+- `0x12` 统计响应 11 字节 → 3 帧；`0x13` 配置 5 字节 → 2 帧。
+- ACK 不带应用层 CRC，依赖 CAN 链路 CRC；命令帧带 CRC16。
+
+### 1.1.3 命令与超时
+
+| cmd | 帧 ID | 参数 | 应答长度 | 说明 |
+|---|---|---|---|---|
+| `0x10` | `0x222` | 无 | 2 | 版本：fw/proto |
+| `0x11` | `0x222` | 无 | 4 | uptime 秒 |
+| `0x12` | `0x222` | 无 | 11 | 节点统计 |
+| `0x13` | `0x222` | 无 | 5 | 当前配置 |
+| `0x20` | `0x221` | `args[0]` 0/1 | 1 | PIR 开关 |
+| `0x21` | `0x221` | 周期 ms | 2 | 温湿度周期 500..60000 |
+| `0x22` | `0x221` | 周期 ms | 2 | 心跳周期 1000..10000 |
+| `0x23` | `0x221` | 无 | 0 | 清零统计，仍回一帧空 ACK |
+
+- ACK 超时 150 ms；同一命令最多发 3 次（含首次），重传字节完全相同。
+- 节点去重缓存深度 4，按 `cmd + seq` 命中后回放缓存 ACK，不重复执行。
+- 实测 1000 条命令：1000/1000 成功，0 重试，P99 22.06 ms。
 
 ### 1.2 诊断帧（ISO-TP / UDS）
 
@@ -340,8 +381,9 @@ Linux                          STM32
 
 ## 7. 兼容与版本
 
-- Baseline 帧 `0x111/0x112/0x113` 沿用 AImate，不改字段；`0x221/0x222/0x228` 从预留变成实现。
+- Baseline 帧 `0x111/0x112/0x113` 沿用 AImate，不改字段；`0x221/0x222/0x228` 已实现双向命令/ACK。
 - 新协议从 `v0.1` 开始；字段变更必须更新本文件并写 changelog。
-- 所有自定义 CRC8：poly `0x07`，init `0x00`，不反射。
-- DHT11 的校验和是前 4 字节相加取低 8 位，**不是 CRC8**，不要和 CAN 协议 CRC 混用。
+- 命令帧 `0x221/0x222` 用 CRC-16/CCITT-FALSE（poly `0x1021`，init `0xFFFF`）；OTA 自定义帧用 CRC8（poly `0x07`，init `0x00`），两者不要混用。
+- DHT11 的校验和是前 4 字节相加取低 8 位，**不是 CRC**，不要和 CAN 协议 CRC 混用。
 - DHT11 实际采样间隔建议 ≥ 2 s；`0x112` 就是 2 s 一帧。
+- 通信层验收：1000 条命令 1000/1000，0 重试，P99 22.06 ms；重复 `seq` 命中缓存，`dup_cmd +1`。

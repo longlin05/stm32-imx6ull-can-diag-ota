@@ -66,7 +66,7 @@ CAN receiver on can0 (AImate 0x111/0x112/0x113, cfg 0x221/0x222/0x228)
 - `0x111` PIR；
 - `0x112` 温湿度；
 - `0x113` 心跳；
-- `0x221/0x222/0x228` Linux → STM32，**当前 MCU 端未实现**。
+- `0x221/0x222/0x228` Linux → STM32 命令/ACK，**已在本地 `my_ai` 工程实现**；本目录只做接收/打印参考。
 
 完整字段见 `include/can_protocol.h` 或主仓库 `firmware/reference/AImate/Docs/CAN_Protocol.md`。
 
@@ -74,5 +74,5 @@ CAN receiver on can0 (AImate 0x111/0x112/0x113, cfg 0x221/0x222/0x228)
 
 - `can_bring_up()` 用 `system("ip link ...")`，需要 root；生产环境应改用 netlink。
 - 当前只做接收/打印，没有 SQLite/MQTT/ISO-TP/UDS/OTA。
-- `0x221/0x222/0x228` 只打印，未做真正命令/ACK。
+- 本目录的 `0x221/0x222/0x228` 只打印，未做真正命令/ACK；完整实现见本地 `my_ai` 工程。
 - 没有 `epoll`；下一步改成 `epoll` + 有界队列。

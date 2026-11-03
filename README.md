@@ -71,12 +71,12 @@ flowchart LR
 
 | 能力 | Baseline（已有） | 本项目（新增） |
 |---|---|---|
-| CAN 传输 | STM32→Linux 500 kbps 已通；Linux→STM32 预留未实现 | 双向命令/ACK、错误帧统计、bus-off 恢复、总线负载/延迟测试 |
-| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留 | ISO-TP 多帧 + UDS 诊断 + DTC |
+| CAN 传输 | STM32→Linux 500 kbps 已通；Linux→STM32 命令/ACK 已通 | 错误帧统计、bus-off 恢复、总线负载/延迟测试 |
+| 应用协议 | AImate `0x111/0x112/0x113`；`0x221/0x222/0x228` 已实现 | ISO-TP 多帧 + UDS 诊断 + DTC |
 | 诊断 | 无 | `0x10 / 0x3E / 0x22 / 0x19 / 0x14` |
 | 故障管理 | 无 | 5 类 DTC、状态位、掉电存储、读/清 |
 | 升级 | 无 | CAN Bootloader、A/B 分区、CRC32、断点续传、回滚 |
-| Linux 网关 | 基础 SocketCAN 接收：`gateway/src/can.c`、`can_recv.c` | epoll、双向命令/ACK、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
+| Linux 网关 | `my_ai`：SocketCAN 收发、命令/ACK、丢包/RTT 统计 | epoll、ISO-TP/UDS 客户端、诊断 CLI、OTA 服务端、SQLite、MQTT、systemd |
 | 证据 | 博客/功能演示 | 测试报告 + 故障注入 + 24h/72h 数据 + demo |
 
 **Baseline 只保留一句简历描述，不占主 bullet。** 主 bullet 全部留给新增能力。
@@ -87,10 +87,11 @@ flowchart LR
 |---|---|---|---|
 | CAN | `CAN-` @ `8a5d561` | `firmware/baseline/` | STM32 示例；主循环需重写 |
 | DHT11 / AHT20 / PIR / FreeRTOS | 旧外设工程 | 独立仓库：[DHT11-AHT20-RIR-Freertos](https://github.com/longlin05/DHT11-AHT20-RIR-Freertos) | 已迁出，主仓库不重复维护 |
-| AImate 协议/上报 | `模块代码/AImate` | `firmware/reference/AImate/` | `0x111/0x112/0x113`；`0x221/0x222/0x228` 预留未实现 |
-| SocketCAN | 本地虚拟机拷入 | `gateway/src/can.c`、`can_recv.c` | 已能收/解析；还需 epoll/双向/诊断 |
+| AImate 协议/上报 | `模块代码/AImate` | `firmware/reference/AImate/` | `0x111/0x112/0x113` 参考；双向命令/ACK 已在 `My_AI` 工程补全 |
+| SocketCAN | 本地虚拟机 `my_ai` | `gateway/src/can.c`、`can_recv.c`（接收参考） | `my_ai` 已实现命令/ACK + 统计；主仓库 gateway 仍是接收参考 |
 
-> SocketCAN 已有基础接收代码，但还没有 epoll/双向命令/诊断；完整 `a-baseline` 仍待补。
+> 通信层已完成：1000/1000 命令、0 重试、P99 22.06 ms，tag `a-v0.2-bidirectional`。
+> 主仓库 `gateway/` 只是接收参考；完整 Linux 端在本地虚拟机 `my_ai`。
 > 导入清单和清理规则见 [`docs/module-import.md`](docs/module-import.md)。
 
 ---

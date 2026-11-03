@@ -48,6 +48,7 @@ Thumbs.db
 *.pcap
 *.pcapng
 test/records/*.tmp
+!test/records/*.log
 
 # Local-only config / secrets
 config.local.ini

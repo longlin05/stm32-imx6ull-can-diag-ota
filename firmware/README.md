@@ -36,7 +36,7 @@ https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 ## 开发顺序
 
 1. CAN baseline：错误帧统计、bus-off 恢复、`FW_VERSION`；
-2. Linux → STM32 命令/ACK（`0x221/0x222/0x228`）；
+2. ✅ Linux → STM32 命令/ACK（`0x221/0x222/0x228`）：1000/1000，P99 22ms；
 3. ISO-TP；
 4. UDS `0x10/0x3E/0x22`；
 5. UDS `0x19/0x14` + DTC；
