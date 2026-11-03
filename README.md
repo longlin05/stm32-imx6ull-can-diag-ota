@@ -269,18 +269,21 @@ CSDN：`blog.csdn.net/longlin101`
 
 系列索引见 [`docs/blog-series.md`](docs/blog-series.md)。
 
-计划文章：
+已发布：
 
-1. 从“CAN 能通”到“可诊断、可升级”
-2. 基线审计：旧 CAN 项目哪些能复用
-3. ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin
-4. UDS 子集：`0x10/0x3E/0x22/0x19/0x14` + DTC
-5. CAN Bootloader：A/B 分区、CRC32、跳转、回滚
-6. OTA 实战：50 次升级与掉电测试
-7. Linux 网关：SocketCAN + 诊断 CLI + SQLite
-8. i.MX6ULL 驱动：AHT20 不可用后的替代方案（IIO / hwmon，待定）
-9. PIR 字符驱动：threaded IRQ + poll + hrtimer
-10. 测试报告：24h/72h、P99、bus-off 数据
+1. [00 从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
+2. [01 基线审计：从“能通”到“可复现”](https://blog.csdn.net/longlin101/article/details/169563492)
+3. [02 双向命令/ACK：1000 次压测与 50 ms 超时假丢包](https://blog.csdn.net/longlin101/article/details/169950471)
+
+计划：
+
+4. 03 ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin
+5. 04 UDS 子集：`0x10/0x3E/0x22/0x19/0x14` + DTC
+6. 05 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
+7. 06 OTA 实战：50 次升级与掉电测试
+8. 07 Linux 网关：SocketCAN + 诊断 CLI + SQLite
+9. 08 i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备
+10. 09 测试报告：24h/72h、P99、bus-off 数据
 
 ---
 

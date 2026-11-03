@@ -3,6 +3,7 @@
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
 > 新仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
 > 旧仓库：[CAN-](https://github.com/longlin05/CAN-)
+> 下一篇：[02 双向命令/ACK：1000 次压测](https://blog.csdn.net/longlin101/article/details/169950471)
 
 我本来想直接给旧工程打一个 `a-baseline` tag，然后开始写 ISO-TP。打开仓库后我发现：**baseline 还不完整。**
 
@@ -226,7 +227,7 @@ ack_fail = 0
 - 旧仓库 commit：`8a5d561bf74d9f5f27b0a7818d3b32c6da72beab`
 - 外设仓库：https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 - 系列目录：https://blog.csdn.net/longlin101/article/details/169562720
-- 下一篇：02 双向命令/ACK + 1000 次压测（50 ms 超时为什么是假丢包）
+- 下一篇：[02 双向命令/ACK + 1000 次压测](https://blog.csdn.net/longlin101/article/details/169950471)
 - ISO-TP 放到 03。
 
 标签：`STM32` `CAN` `i.MX6ULL` `嵌入式Linux` `OTA`

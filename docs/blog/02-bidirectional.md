@@ -1,7 +1,7 @@
 # STM32 + i.MX6ULL CAN 诊断与 OTA（02）：双向命令/ACK，以及 50 ms 超时为什么是“假丢包”
 
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
-> 上一篇：[01 旧 CAN 项目基线审计](https://blog.csdn.net/longlin101/article/details/169562773)
+> 上一篇：[01 旧 CAN 项目基线审计](https://blog.csdn.net/longlin101/article/details/169563492)
 > 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
 > 本文对应 tag：`a-v0.2-bidirectional`
 
