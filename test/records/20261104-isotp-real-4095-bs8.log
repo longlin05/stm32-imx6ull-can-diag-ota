@@ -1,0 +1,36 @@
+# 2026-11-04 真实 CAN 4095 字节 + DHT11 并发 + BS8/STmin5
+
+对端：STM32F407（ISO-TP echo，HAL CAN）
+Linux：i.MX6ULL `gateway/gw`，真实 `can0`，500 kbps
+
+参数：
+
+```text
+len  = 4095
+BS   = 8
+STmin = 5 ms
+padding = 0xCC
+```
+
+STM32 串口关键输出：
+
+```text
+ISOTP fc: fs=0 bs=8 stmin=5 at 1991762ms pos=4094/4095 ok
+ISOTP rx: 4095B in 2688ms | 585 CF, 74 FC, CF gap 576..7234us | 1523B/s
+ISOTP tx: echo started 4095B -> 0x7E8
+ISOTP tx: 4095B echo in 2633ms | 1555B/s
+ISOTP sum: n=6 | rx 648/2334/2720ms 1534B/s | tx 654/2300/2633ms 1557B/s | total 27812ms 1546B/s | drops rx_ovf=0 tx=0
+```
+
+结论：
+
+- 4095 字节收发完成；
+- 585 个 CF，74 个 FC（BS=8）；
+- DHT11 每 2 s 读取同时运行；
+- `rx_ovf=0`、`tx drops=0`；
+- BS=8 / STmin=5 ms 生效。
+
+注意：
+
+- `CF gap 576..7234us` 的最小值是块边界（FC 后首帧不受 STmin 约束），不是块内违规；
+- 块内间隔由 `selftest` 的 `check_stmin` 校验。

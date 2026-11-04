@@ -17,11 +17,16 @@
 /* 程序内自动拉起 CAN 接口（需 root） */
 int can_bring_up(const char *ifname, int bitrate) {
     char cmd[256];
-    /* 先 down 再 up：若之前已按别的速率 up 过，直接 up 会失败 */
+    int rc;
+    /* 只 up、不 down：down 会把并发的 candump 等读端打断，报 "read: Network is down"。
+       已 up 时重复 up 是幂等 no-op（改 bitrate/restart-ms 会 EBUSY，被吞掉，接口不受影响）。
+       这里只尽力而为，是否真的可用由 can_open 判定，不在此报错。 */
     snprintf(cmd, sizeof cmd,
-             "ip link set %s down 2>/dev/null; ip link set %s up type can bitrate %d 2>/dev/null",
-             ifname, ifname, bitrate);
-    return system(cmd) == 0 ? 0 : -1;
+             "ip link set %s up type can bitrate %d restart-ms 100 2>/dev/null",
+             ifname, bitrate);
+    rc = system(cmd);
+    (void)rc;
+    return 0;
 }
 
 int can_open(const char *ifname) {
@@ -59,8 +64,20 @@ int can_read(int fd, struct can_frame *frame) {
 }
 
 int can_write(int fd, const struct can_frame *frame) {
-    ssize_t n = write(fd, frame, sizeof *frame);
-    return n == (ssize_t)sizeof *frame ? 0 : -1;
+    /* 非阻塞套接字 + 大载荷(如 4095B)会连发几百帧，写快了 TX 队列溢出、CF 被丢，
+       导致序号错乱。队列满时等控制器把积压帧发出去再重试(最多 50ms)。 */
+    uint32_t deadline = can_now_ms() + 50;
+    for (;;) {
+        ssize_t n = write(fd, frame, sizeof *frame);
+        if (n == (ssize_t)sizeof *frame)
+            return 0;
+        if ((errno == EAGAIN || errno == ENOBUFS) &&
+            (int32_t)(can_now_ms() - deadline) < 0) {
+            usleep(200);
+            continue;
+        }
+        return -1;
+    }
 }
 
 int can_send(int fd, uint32_t can_id, const uint8_t *data, uint8_t dlc) {
