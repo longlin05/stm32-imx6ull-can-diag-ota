@@ -25,7 +25,8 @@ int main(int argc, char **argv) {
     uint32_t deadline;
     int i;
 
-    if (can_bring_up(ifname, 500000) != 0)
+    /* vcan 不接受 type can bitrate，拉起失败属正常，不告警 */
+    if (can_bring_up(ifname, 500000) != 0 && strncmp(ifname, "vcan", 4) != 0)
         fprintf(stderr, "warn: 拉起 %s 失败(可能缺少 root)，继续尝试\n", ifname);
 
     g_fd = can_open(ifname);
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
     can_set_nonblock(g_fd);
     can_enable_error_frames(g_fd);
 
-    isotp_init(&iso, CAN_ID_REQ, CAN_ID_RESP, 0xCC, 1000, 1000, tx_frame_cb, can_now_ms);
+    isotp_init(&iso, CAN_ID_REQ, CAN_ID_RESP, 0xCC, 1000, 1000, 0, 0, tx_frame_cb, can_now_ms);
 
     for (i = 0; i < (int)sizeof test; i++)
         test[i] = (uint8_t)i;

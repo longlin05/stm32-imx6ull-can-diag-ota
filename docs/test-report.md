@@ -43,11 +43,11 @@
 
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
-| A-IT-01 | 单帧 SF | 1 / 7 字节 | 收发一致 | **通过**：selftest 1、7 字节 | `test/records/20261103-isotp-selftest.log` |
-| A-IT-02 | 多帧 4095 字节 | FF + CF | 0 错误、长度一致 | **通过**：selftest 8/20/1000/4095；vcan 20 字节回显 | `test/records/20261103-isotp-selftest.log` |
-| A-IT-03 | BlockSize/STmin | 改 BS/STmin 重复 | 不超时、不乱序 | 待实现：当前 BS=0 / STmin=0 |  |
-| A-IT-04 | 丢帧重传 | 中途丢 1 帧 | N_Cr 超时后重传成功 | 待执行 |  |
-| A-IT-05 | 错序/长度错 | 注入错误 CF | 丢弃并计数，不崩溃 | 待执行 |  |
+| A-IT-01 | 单帧 SF | 1 / 7 字节 | 收发一致 | **通过**：selftest 1、7 字节 | `test/records/20261104-isotp-flow-selftest.log` |
+| A-IT-02 | 多帧 4095 字节 | FF + CF | 0 错误、长度一致 | **通过**：selftest 4095；vcan 20 字节回显 | `test/records/20261104-isotp-flow-selftest.log` |
+| A-IT-03 | BlockSize/STmin | BS=8 / STmin=5ms | 不超时、不乱序 | **通过**：selftest 1024/4095 | `test/records/20261104-isotp-flow-selftest.log` |
+| A-IT-04 | 丢 CF 超时 | 丢弃全部 CF | N_Cr 超时、不崩溃 | **通过**：N_Cr/N_Bs 超时；当前不自动重传 | `test/records/20261104-isotp-flow-selftest.log` |
+| A-IT-05 | 错序 CF | 丢弃 CF#2 | 中止并回 OVFLW | **通过**：接收端 ABORT、发送端 ABORT | `test/records/20261104-isotp-flow-selftest.log` |
 
 ### 2.2 UDS
 

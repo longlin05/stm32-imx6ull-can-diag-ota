@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     can_set_nonblock(g_fd);
     can_enable_error_frames(g_fd);
 
-    isotp_init(&iso, CAN_ID_RESP, CAN_ID_REQ, 0xCC, 1000, 1000, tx_frame_cb, can_now_ms);
+    isotp_init(&iso, CAN_ID_RESP, CAN_ID_REQ, 0xCC, 1000, 1000, 0, 0, tx_frame_cb, can_now_ms);
 
     fprintf(stderr, "mock ECU: %s, req=0x%X resp=0x%X\n",
             ifname, (unsigned)CAN_ID_REQ, (unsigned)CAN_ID_RESP);

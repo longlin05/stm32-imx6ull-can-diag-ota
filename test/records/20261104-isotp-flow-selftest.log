@@ -1,0 +1,51 @@
+# 2026-11-04 ISO-TP 流控/异常自测
+
+命令：
+
+```bash
+make test
+# 或直接：
+./selftest
+```
+
+输出：
+
+```text
+{"case":"1B   BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"7B   BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"8B   BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"20B  BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"100B BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"1024B BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"4095B BS0/ST0","ok":true,"b_rx":2,"a_tx":3}
+{"case":"1024B BS8/ST5","ok":true,"b_rx":2,"a_tx":3}
+{"case":"4095B BS8/ST5","ok":true,"b_rx":2,"a_tx":3}
+{"case":"100B 错序(丢CF#2)","ok":true,"b_rx":4,"a_tx":5}
+{"case":"100B N_Cr超时","ok":true,"b_rx":3,"a_tx":3}
+{"case":"100B N_Bs超时","ok":true,"b_rx":3,"a_tx":4}
+```
+
+覆盖：
+
+- SF 边界：1、7 字节；
+- FF 边界：8 字节；
+- 多帧：20、100、1024、4095 字节；
+- BS=0 / STmin=0；
+- BS=8 / STmin=5ms；
+- 丢 CF#2 → 接收端 ABORT + 回 OVFLW，发送端 ABORT；
+- 全部 CF 丢失 → N_Cr 超时；
+- 全部 FC 丢失 → N_Bs 超时、N_Cr 超时。
+
+状态枚举：
+
+```text
+RX: 0=IDLE 1=CF 2=DONE 3=TIMEOUT 4=ABORT
+TX: 0=IDLE 1=WAIT_FC 2=CF 3=DONE 4=TIMEOUT 5=ABORT
+```
+
+所以：
+
+- `b_rx=2, a_tx=3`：正常完成；
+- `b_rx=4, a_tx=5`：错序中止；
+- `b_rx=3`：接收超时；
+- `a_tx=4`：发送等 FC 超时。

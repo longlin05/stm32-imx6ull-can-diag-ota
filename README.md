@@ -239,8 +239,9 @@ sudo /home/root/gw can0
 
 | 测试 | 目标 | 状态 |
 |---|---|---|
-| ISO-TP 单帧/多帧 | 4095 字节 0 错误 | 核心通过：selftest 1/7/8/20/1000/4095；vcan 20 字节回显通过 |
-| ISO-TP BS/STmin | BS=8 / STmin=5ms | 待实现（当前 BS=0 / STmin=0） |
+| ISO-TP 单帧/多帧 | 4095 字节 0 错误 | 核心通过：selftest 1/7/8/20/100/1024/4095；vcan 20 字节回显通过 |
+| ISO-TP BS/STmin | BS=8 / STmin=5ms | 通过：selftest 1024/4095 字节 |
+| ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | 通过：selftest 9 个用例 |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | 待实现 |
 | UDS `0x19/0x14` | 5 类 DTC 可读/可清 | 待实现 |
 | Bootloader A/B | 两个分区都能启动 | 待实现 |
@@ -257,8 +258,9 @@ sudo /home/root/gw can0
 - [x] 创建仓库骨架
 - [x] 完成 baseline 审计，打 `a-baseline-stm32`
 - [x] 双向命令/ACK，打 `a-v0.2-bidirectional`
-- [x] ISO-TP：SF / FF / CF / FC（BS=0 / STmin=0）
-- [ ] ISO-TP：BS=8 / STmin=5ms
+- [x] ISO-TP：SF / FF / CF / FC（Linux 核心）
+- [x] ISO-TP：BS/STmin、N_Bs/N_Cr、错序处理
+- [ ] ISO-TP：STM32 `app_isotp.c` + 双机 4095 字节
 - [ ] UDS：`0x10 / 0x3E / 0x22`
 - [ ] UDS：`0x19 / 0x14` + DTC 存储
 - [ ] Bootloader：A/B、CRC32、跳转
