@@ -1,0 +1,81 @@
+# 2026-11-04 真实 CAN 异常注入
+
+平台：i.MX6ULL + STM32F407，真实 `can0`，500 kbps。
+
+参数：
+
+```text
+len   = 100
+BS    = 8
+STmin = 5 ms
+```
+
+> 注：录制时 `mock_ecu` 也曾在总线上，日志里能看到它收到同样的帧。
+> 三条故障路径最终都由 STM32 的状态机日志确认；为拿到干净证据，建议 kill `mock_ecu` 后重跑一次。
+
+## 1. 丢 FC：`--drop-fc`
+
+gw：
+
+```text
+./gw can0 100 8 5 --drop-fc
+{"event":"send","id":"0x7E0","len":100,"fault":3}
+{"event":"tx_timeout","tx_state":4,"rx_state":0}
+```
+
+STM32：
+
+```text
+ISOTP fc: fs=0 bs=8 stmin=5 at 4964103ms pos=6/100 ok
+ISOTP rx: N_Cr timeout after 1000ms, got 6/100B (0 CF, 1 FC), dropped
+```
+
+结论：gw 不处理 FC，N_Bs 超时；STM32 发出 FC 后等不到 CF，N_Cr 超时。正确。
+
+## 2. 错序 CF：`--mangle-cf 2`
+
+gw：
+
+```text
+./gw can0 100 8 5 --mangle-cf 2
+{"event":"send","id":"0x7E0","len":100,"fault":2}
+{"event":"tx_abort","tx_state":5,"rx_state":0}
+```
+
+STM32：
+
+```text
+ISOTP fc: fs=0 bs=8 stmin=5 at 4968130ms pos=6/100 ok
+ISOTP fc: fs=2 bs=8 stmin=5 at 4968131ms pos=13/100 ok
+ISOTP rx: SN mismatch (expected 2, got 3) at 13/100B, FC OVFLW sent
+```
+
+结论：STM32 检测到 SN 跳变，发 OVFLW，进入 ABORT；gw 收到 OVFLW 后 TX_ABORT。正确。
+
+## 3. 丢最后一个 CF：`--drop-last-cf`
+
+gw：
+
+```text
+./gw can0 100 8 5 --drop-last-cf
+{"event":"send","id":"0x7E0","len":100,"fault":1}
+{"event":"timeout","tx_state":3,"rx_state":0}
+```
+
+STM32：
+
+```text
+ISOTP rx: N_Cr timeout after 1049ms, got 97/100B (13 CF, 2 FC), dropped
+```
+
+结论：gw 发完前 13 个 CF，最后一个没发；STM32 等最后一个 CF 超时。gw 自己 `TX_DONE`，但等不到回显，最终超时。正确。
+
+## mock_ecu 日志
+
+```text
+mock N_Cr timeout (got 97/100), reset
+mock ABORT (seq mismatch, OVFLW sent), reset
+mock N_Cr timeout (got 6/100), reset
+```
+
+说明 mock 也收到了同样的故障帧；它不影响故障路径结论，但干净测试应先停掉 mock。

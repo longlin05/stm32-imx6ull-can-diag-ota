@@ -241,7 +241,7 @@ sudo /home/root/gw can0
 |---|---|---|
 | ISO-TP 单帧/多帧 | 4095 字节 0 错误 | **真实 CAN 4095 通过**：585 CF，rx_ovf=0；selftest 覆盖 1/7/8/20/100/1024/4095 |
 | ISO-TP BS/STmin | BS=8 / STmin=5ms | **真实 CAN 通过**：74 个 FC，块内 STmin 校验通过 |
-| ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | selftest 9 用例通过；真实 CAN 注入待做 |
+| ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | **真实 CAN 通过**：drop-fc / mangle-cf / drop-last-cf；selftest 9 用例 |
 | DHT11 并发 | 4095 收发时每 2s 读 DHT11 | **通过**：rx_ovf=0、tx drops=0 |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | 待实现 |
 | UDS `0x19/0x14` | 5 类 DTC 可读/可清 | 待实现 |
