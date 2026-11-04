@@ -1,0 +1,40 @@
+# 2026-11-04 ISO-TP 流控/异常自测（当前版本）
+
+命令：
+
+```bash
+make test
+# 或直接：
+./selftest
+```
+
+输出：
+
+```text
+{"case":"7B   BS0/ST0","ok":true,"b_rx":2,"a_tx":3,"fc":0,"cf":0}
+{"case":"100B BS0/ST0","ok":true,"b_rx":2,"a_tx":3,"fc":1,"cf":14}
+{"case":"1024B BS0/ST0","ok":true,"b_rx":2,"a_tx":3,"fc":1,"cf":146}
+{"case":"4095B BS0/ST0","ok":true,"b_rx":2,"a_tx":3,"fc":1,"cf":585}
+{"case":"1024B BS8/ST5","ok":true,"b_rx":2,"a_tx":3,"fc":19,"cf":146}
+{"case":"4095B BS8/ST5","ok":true,"b_rx":2,"a_tx":3,"fc":74,"cf":585}
+{"case":"100B 丢最后CF","ok":true,"b_rx":3,"a_tx":3,"fc":2,"cf":14}
+{"case":"100B 错序CF#2","ok":true,"b_rx":4,"a_tx":5,"fc":2,"cf":2}
+{"case":"100B 丢FC","ok":true,"b_rx":3,"a_tx":4,"fc":1,"cf":0}
+```
+
+覆盖：
+
+- BS=0 / STmin=0；
+- BS=8 / STmin=5ms，校验 FC 数量和块内 CF 间隔；
+- 1024 / 4095 字节；
+- 丢最后一个 CF → N_Cr 超时；
+- CF#2 错序 → ABORT + OVFLW；
+- 丢 FC → N_Bs 超时；
+- FC 数量：BS=8 时 1024B 为 19，4095B 为 74。
+
+状态枚举：
+
+```text
+RX: 0=IDLE 1=CF 2=DONE 3=TIMEOUT 4=ABORT
+TX: 0=IDLE 1=WAIT_FC 2=CF 3=DONE 4=TIMEOUT 5=ABORT
+```

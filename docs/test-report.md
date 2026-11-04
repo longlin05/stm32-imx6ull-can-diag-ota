@@ -43,11 +43,12 @@
 
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
-| A-IT-01 | 单帧 SF | 1 / 7 字节 | 收发一致 | **通过**：selftest 1、7 字节 | `test/records/20261104-isotp-flow-selftest.log` |
-| A-IT-02 | 多帧 4095 字节 | FF + CF | 0 错误、长度一致 | **通过**：selftest 4095；vcan 20 字节回显 | `test/records/20261104-isotp-flow-selftest.log` |
-| A-IT-03 | BlockSize/STmin | BS=8 / STmin=5ms | 不超时、不乱序 | **通过**：selftest 1024/4095 | `test/records/20261104-isotp-flow-selftest.log` |
-| A-IT-04 | 丢 CF 超时 | 丢弃全部 CF | N_Cr 超时、不崩溃 | **通过**：N_Cr/N_Bs 超时；当前不自动重传 | `test/records/20261104-isotp-flow-selftest.log` |
-| A-IT-05 | 错序 CF | 丢弃 CF#2 | 中止并回 OVFLW | **通过**：接收端 ABORT、发送端 ABORT | `test/records/20261104-isotp-flow-selftest.log` |
+| A-IT-01 | 单帧 SF | 1 / 7 字节 | 收发一致 | **通过**：selftest 1、7 字节 | `test/records/20261103-isotp-selftest.log` |
+| A-IT-02 | 多帧 4095 字节 | FF + CF，真实 CAN | 0 错误、长度一致 | **通过**：真实 CAN 4095 收发；585 CF，rx_ovf=0 | `test/records/20261104-isotp-real-4095-bs8.log` |
+| A-IT-03 | BlockSize/STmin | BS=8 / STmin=5ms，真实 CAN | 不超时、不乱序 | **通过**：74 个 FC，块内 STmin 校验通过 | `test/records/20261104-isotp-real-4095-bs8.log` |
+| A-IT-04 | 丢 CF 超时 | 丢最后一个 CF / 丢 FC | N_Cr/N_Bs 超时、不崩溃 | **通过（selftest）**：N_Cr/N_Bs 超时；真实 CAN 注入待做 | `test/records/20261104-isotp-selftest-final.log` |
+| A-IT-05 | 错序 CF | CF#2 序号+1 | 中止并回 OVFLW | **通过（selftest）**：ABORT + OVFLW；真实 CAN 注入待做 | `test/records/20261104-isotp-selftest-final.log` |
+| A-IT-06 | DHT11 并发 | 4095 收发时每 2s 读 DHT11 | 不丢 CF、无 overflow | **通过**：rx_ovf=0、tx drops=0 | `test/records/20261104-isotp-real-4095-bs8.log` |
 
 ### 2.2 UDS
 

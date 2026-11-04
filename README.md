@@ -239,9 +239,10 @@ sudo /home/root/gw can0
 
 | 测试 | 目标 | 状态 |
 |---|---|---|
-| ISO-TP 单帧/多帧 | 4095 字节 0 错误 | 核心通过：selftest 1/7/8/20/100/1024/4095；vcan 20 字节回显通过 |
-| ISO-TP BS/STmin | BS=8 / STmin=5ms | 通过：selftest 1024/4095 字节 |
-| ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | 通过：selftest 9 个用例 |
+| ISO-TP 单帧/多帧 | 4095 字节 0 错误 | **真实 CAN 4095 通过**：585 CF，rx_ovf=0；selftest 覆盖 1/7/8/20/100/1024/4095 |
+| ISO-TP BS/STmin | BS=8 / STmin=5ms | **真实 CAN 通过**：74 个 FC，块内 STmin 校验通过 |
+| ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | selftest 9 用例通过；真实 CAN 注入待做 |
+| DHT11 并发 | 4095 收发时每 2s 读 DHT11 | **通过**：rx_ovf=0、tx drops=0 |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | 待实现 |
 | UDS `0x19/0x14` | 5 类 DTC 可读/可清 | 待实现 |
 | Bootloader A/B | 两个分区都能启动 | 待实现 |
@@ -260,7 +261,7 @@ sudo /home/root/gw can0
 - [x] 双向命令/ACK，打 `a-v0.2-bidirectional`
 - [x] ISO-TP：SF / FF / CF / FC（Linux 核心）
 - [x] ISO-TP：BS/STmin、N_Bs/N_Cr、错序处理
-- [ ] ISO-TP：STM32 `app_isotp.c` + 双机 4095 字节
+- [x] ISO-TP：STM32 `app_isotp.c` + 双机 4095 字节（代码待归档）
 - [ ] UDS：`0x10 / 0x3E / 0x22`
 - [ ] UDS：`0x19 / 0x14` + DTC 存储
 - [ ] Bootloader：A/B、CRC32、跳转

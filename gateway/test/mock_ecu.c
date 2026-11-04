@@ -9,6 +9,9 @@
 /*
  * vcan 自测对端：模拟 ECU。
  * 收 0x7E0 的 ISO-TP 消息，原样回显到 0x7E8。与 gw 一起跑，验证状态机双向收发。
+ * 用法：./mock_ecu <ifname> [bs] [stmin]
+ *   bs      BlockSize（0=不分块），默认 0
+ *   stmin   SeparationTime，0x00-0x7F 为毫秒，默认 0
  * 后续可在此基础上替换成按 UDS SID 应答的完整 mock。
  */
 
@@ -20,9 +23,16 @@ static int tx_frame_cb(uint32_t id, const uint8_t *data, uint8_t dlc) {
 
 int main(int argc, char **argv) {
     const char *ifname = (argc > 1) ? argv[1] : "vcan0";
+    long bs = (argc > 2) ? atol(argv[2]) : 0;
+    long stmin = (argc > 3) ? atol(argv[3]) : 0;
     isotp_ctx_t iso;
     uint8_t echo[ISOTP_MAX_PAYLOAD];
     uint16_t echo_len = 0;
+
+    if (bs < 0 || bs > 255 || stmin < 0 || stmin > 255) {
+        fprintf(stderr, "bs/stmin 需在 0..255 之间（默认 0/0）\n");
+        return 1;
+    }
 
     can_bring_up(ifname, 500000);
     g_fd = can_open(ifname);
@@ -33,14 +43,16 @@ int main(int argc, char **argv) {
     can_set_nonblock(g_fd);
     can_enable_error_frames(g_fd);
 
-    isotp_init(&iso, CAN_ID_RESP, CAN_ID_REQ, 0xCC, 1000, 1000, 0, 0, tx_frame_cb, can_now_ms);
+    isotp_init(&iso, CAN_ID_RESP, CAN_ID_REQ, 0xCC, 1000, 1000,
+               (uint8_t)bs, (uint8_t)stmin, tx_frame_cb, can_now_ms);
 
     fprintf(stderr, "mock ECU: %s, req=0x%X resp=0x%X\n",
             ifname, (unsigned)CAN_ID_REQ, (unsigned)CAN_ID_RESP);
 
     for (;;) {
         struct can_frame f;
-        int r = can_poll(g_fd, 100);
+        /* 同上：1ms 轮询避免 poll 超时把回显的 STmin 节流拖慢 */
+        int r = can_poll(g_fd, 1);
 
         if (r > 0) {
             while (can_read(g_fd, &f) == (int)sizeof f) {
