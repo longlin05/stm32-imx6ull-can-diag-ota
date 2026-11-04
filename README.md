@@ -173,7 +173,10 @@ flowchart LR
 │   ├── protocol.md
 │   ├── test-report.md
 │   └── blog-series.md
-├── firmware/          # STM32 应用：传感器、UDS、DTC、OTA client
+├── firmware/
+│   ├── app/           # STM32 应用：ISO-TP echo、命令/ACK、传感器
+│   ├── baseline/      # 旧 CAN 示例
+│   └── reference/     # AImate 参考
 ├── bootloader/        # STM32 Bootloader：A/B、CRC、跳转、回滚
 ├── gateway/           # i.MX6ULL Linux 网关：SocketCAN、诊断、OTA、SQLite、MQTT
 ├── test/              # 测试脚本、测试记录、故障注入
@@ -261,7 +264,7 @@ sudo /home/root/gw can0
 - [x] 双向命令/ACK，打 `a-v0.2-bidirectional`
 - [x] ISO-TP：SF / FF / CF / FC（Linux 核心）
 - [x] ISO-TP：BS/STmin、N_Bs/N_Cr、错序处理
-- [x] ISO-TP：STM32 `app_isotp.c` + 双机 4095 字节（代码待归档）
+- [x] ISO-TP：STM32 `isotp_port` + 双机 4095 字节（已归档 `firmware/app`）
 - [ ] UDS：`0x10 / 0x3E / 0x22`
 - [ ] UDS：`0x19 / 0x14` + DTC 存储
 - [ ] Bootloader：A/B、CRC32、跳转
