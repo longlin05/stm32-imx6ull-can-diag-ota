@@ -1,6 +1,6 @@
 # Gateway 诊断/升级网关 — 设计文档
 
-> 状态：**ISO-TP 核心已完成（BS=0/STmin=0），UDS/FOTA 未开始**。
+> 状态：**ISO-TP 核心已完成（含 BS/STmin、N_Bs/N_Cr、错序处理），UDS/FOTA 未开始**。
 > 本文是 `my_ai` 的延伸项目 `gateway` 的设计契约，也是后续 Linux 端实现与 STM32 固件联调的基准。
 
 ---
@@ -76,13 +76,15 @@ ISO-TP 传输核心 (15765-2)   SF/FF/CF/FC 状态机 —— 纯C、零平台依
 
 | 参数 | 值 |
 |---|---|
-| BlockSize (BS) | `0`（不流控块，CF 连续发） |
-| STmin | `0` ms |
+| BlockSize (BS) | 默认 `0`；支持 `8` 等块流控 |
+| STmin | 默认 `0` ms；支持 `5` ms 等 |
 | N_Bs（发送方等 FC 超时） | `1000` ms |
 | N_Cr（接收方等 CF 超时） | `1000` ms |
 | padding | `0xCC` |
 
-> 两端（Linux / STM32）必须严格一致。`BS=0` 表示发送方一次性把所有 CF 发完、不等 FC；`N_Bs`/`N_Cr` 用标准 1000ms 是保守取值。
+> 两端（Linux / STM32）必须严格一致。`BS=0` 表示发送方一次性把所有 CF 发完、不等 FC；
+> `BS>0` 时每发 `BS` 帧等一次 FC。接收端在 FC 里广播自己的 `BS/STmin`，发送端按它执行。
+> `N_Bs`/`N_Cr` 用标准 1000ms 是保守取值。
 
 ---
 

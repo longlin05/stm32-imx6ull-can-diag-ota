@@ -1,4 +1,4 @@
-# gateway — 诊断/升级网关（骨架阶段）
+# gateway — 诊断/升级网关（ISO-TP 核心完成，UDS 未开始）
 
 在 imx6ull 上做 CAN 诊断/升级网关：南向 ISO-TP + UDS，北向 v1 只做 CLI + JSON。
 
@@ -8,9 +8,10 @@
 ## 当前状态
 
 - ✅ 平台无关 ISO-TP 核心（[include/isotp.h](include/isotp.h) / [src/isotp.c](src/isotp.c)）：SF/FF/CF/FC 状态机，只走收发/定时回调，STM32 复用本文件。
+- ✅ 流控：BS=0/8、STmin=0/5ms；N_Bs/N_Cr 超时；错序 CF 回 OVFLW。
 - ✅ Linux socketcan 适配层（[src/can.c](src/can.c)）。
 - ✅ vcan 自测对端（[test/mock_ecu.c](test/mock_ecu.c)）。
-- ✅ 免 root 进程内自测（[test/selftest.c](test/selftest.c)）。
+- ✅ 免 root 进程内自测（[test/selftest.c](test/selftest.c)）：1/7/8/20/100/1024/4095、BS8/ST5、丢 CF、N_Cr/N_Bs。
 - ⬜ UDS 服务层 + CLI（下一步）。
 
 ## 构建
