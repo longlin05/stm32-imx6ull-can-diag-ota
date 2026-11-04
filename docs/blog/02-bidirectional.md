@@ -411,6 +411,6 @@ N_Cr 超时
 - 50 ms 超时日志：`test/records/20261103-can-timeout-50ms.log`
 - 去重日志：`test/records/20261103-can-dedup.log`
 - 测试报告：`docs/test-report.md`
-- 下一篇：03 ISO-TP 多帧
+- 下一篇：[03 ISO-TP 多帧：4095 字节与 30% 丢帧修复](https://blog.csdn.net/longlin101/article/details/170053591)
 
 标签：`STM32` `CAN` `i.MX6ULL` `嵌入式Linux` `ISO-TP`

@@ -298,10 +298,10 @@ CSDN：`blog.csdn.net/longlin101`
 1. [00 从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
 2. [01 基线审计：从“能通”到“可复现”](https://blog.csdn.net/longlin101/article/details/169563492)
 3. [02 双向命令/ACK：1000 次压测与 50 ms 超时假丢包](https://blog.csdn.net/longlin101/article/details/169950471)
+4. [03 ISO-TP：从 0 到 4095 字节，以及 30% 丢帧是怎么修掉的](https://blog.csdn.net/longlin101/article/details/170053591)
 
 计划：
 
-4. 03 ISO-TP 多帧：SF/FF/CF/FC、BlockSize/STmin
 5. 04 UDS 子集：`0x10/0x3E/0x22/0x19/0x14` + DTC
 6. 05 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
 7. 06 OTA 实战：50 次升级与掉电测试

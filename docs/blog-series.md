@@ -29,7 +29,7 @@
 | 00 | 从“CAN 能通”到“可诊断、可升级”：项目总览 | 仓库初始化 | 已发布 | https://blog.csdn.net/longlin101/article/details/169562720 |
 | 01 | 基线审计：从“能通”到“可复现” | `a-baseline-stm32` | 已发布 | https://blog.csdn.net/longlin101/article/details/169563492 |
 | 02 | 双向命令/ACK：1000 次压测，以及 50 ms 超时为什么是“假丢包” | `a-v0.2-bidirectional` | 已发布 | https://blog.csdn.net/longlin101/article/details/169950471 |
-| 03 | ISO-TP 多帧：4095 字节、BS/STmin、DHT11 并发与异常注入 | `a-v0.4-isotp-stm32` | 本地稿完成，待发布 | [`docs/blog/03-isotp.md`](blog/03-isotp.md) |
+| 03 | ISO-TP 多帧：4095 字节、BS/STmin、DHT11 并发与异常注入 | `a-v0.4-isotp-stm32` | 已发布 | https://blog.csdn.net/longlin101/article/details/170053591 |
 | 04 | UDS 子集：`0x10/0x3E/0x22/0x19/0x14` 与 DTC | `a-v0.5-uds` | 待写 |  |
 | 05 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.6-boot` | 待写 |  |
 | 06 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
