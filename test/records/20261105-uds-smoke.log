@@ -130,6 +130,32 @@ candump 显示响应晚了约 3.2s：
 
 S3=5s 行为正确，且超时后再次进入编程会话仍正常。
 
+## 首次卡顿定位与修复
+
+第一次 100 次循环在发第一帧前卡住，candump 无请求。
+
+根因：`uds_client_init()` 每次进程启动都执行：
+
+```c
+can_bring_up(ifname, 500000);
+```
+
+内部 `system("ip link set ...")` 在接口状态异常时可能卡住。
+
+修复：删除 `uds_cli` 的自动 `ip link`，要求先手动拉起接口。
+
+重新编译后 100 次：
+
+```text
+time for i in $(seq 1 100); do
+  ./uds_cli can0 read-did F180 >/dev/null || { echo "fail at $i"; break; }
+done
+
+real    0m2.034s
+```
+
+100/100 成功，无卡顿。
+
 ## 未覆盖
 
 - 首次请求 3.2s 延迟的根因（未复现，保留监控）；
