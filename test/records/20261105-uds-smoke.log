@@ -1,0 +1,72 @@
+# 2026-11-05 UDS 冒烟测试
+
+平台：STM32F407 + i.MX6ULL，真实 CAN 500 kbps。
+
+## 命令与输出
+
+```text
+./uds_cli can0 session 03
+TX: 10 03
+RX: 50 03
+{"cmd":"session","status":"ok"}
+
+./uds_cli can0 tester-present
+TX: 3E 00
+RX: 7E 00
+{"cmd":"tester-present","status":"ok"}
+
+./uds_cli can0 read-did F180
+TX: 22 F1 80
+RX: 62 F1 80 10
+{"cmd":"read-did","did":"F180","status":"ok","len":1}
+
+./uds_cli can0 read-did F190
+TX: 22 F1 90
+RX: 62 F1 90 4C 46 56 32 41 32 31 4B 37 41 33 30 30 30 30 30 31
+{"cmd":"read-did","did":"F190","status":"ok","len":17}
+VIN: LFV2A21K7A3000001
+
+./uds_cli can0 read-did 1234
+TX: 22 12 34
+RX: 7F 22 31
+{"cmd":"read-did","status":"nrc","nrc":"0x31"}
+```
+
+## candump
+
+```text
+7E0 [8] 02 10 03 CC CC CC CC CC
+7E8 [8] 02 50 03 CC CC CC CC CC
+
+7E0 [8] 02 3E 00 CC CC CC CC CC
+7E8 [8] 02 7E 00 CC CC CC CC CC
+
+7E0 [8] 03 22 F1 80 CC CC CC CC
+7E8 [8] 04 62 F1 80 10 CC CC CC
+
+7E0 [8] 03 22 F1 90 CC CC CC CC
+7E8 [8] 10 14 62 F1 90 4C 46 56
+7E0 [8] 30 08 05 CC CC CC CC CC
+7E8 [8] 21 32 41 32 31 4B 37 41
+7E8 [8] 22 33 30 30 30 30 30 31
+
+7E0 [8] 03 22 12 34 CC CC CC CC
+7E8 [8] 03 7F 22 31 CC CC CC CC
+```
+
+## 结论
+
+- `0x10 03` → `50 03` 通过；
+- `0x3E 00` → `7E 00` 通过；
+- `0x22 F180` → `62 F1 80 10` 通过；
+- `0x22 F190` → 20 字节、FF + 2 CF 重组，VIN 正确；
+- 未知 DID → `7F 22 31`；
+- STM32 日志 `ISOTP tx: UDS response ...`，`rx_ovf=0`。
+
+## 未覆盖
+
+- `10 01` 默认会话；
+- `10 04` 非法子功能（命令需 `./uds_cli can0 session 04`）；
+- S3 5s 超时行为；
+- `22 F1A0/F1A1/F1A2`；
+- 连续 100 次 UDS 请求。
