@@ -1,5 +1,6 @@
 #include "uds_server.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "app_report.h"
@@ -198,6 +199,7 @@ void UdsServer_Tick(uint32_t now_ms)
       ((uint32_t)(now_ms - s_last_activity_ms) >= UDS_S3_TIMEOUT_MS))
   {
     s_session = UDS_SESSION_DEFAULT;
+    printf("UDS: S3 timeout -> default session\r\n");
   }
 }
 
