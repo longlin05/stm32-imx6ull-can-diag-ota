@@ -82,9 +82,39 @@ RX: 7F 22 31
 - `0x22 F1A2` → `10 27` = 10000ms；
 - 未知 DID → `7F 22 31`。
 
+## 连续 100 次
+
+```text
+time for i in $(seq 1 100); do
+  ./uds_cli can0 read-did F180 >/dev/null || { echo "fail at $i"; break; }
+done
+
+real    0m5.834s
+```
+
+100 次全部成功，无 fail。
+
+## 一次异常
+
+在另一次 `session 03` + `sleep 6` 之后，首次 `read-did F180` 打印 timeout：
+
+```text
+TX: 22 F1 80
+{"cmd":"read-did","status":"timeout"}
+```
+
+candump 显示响应晚了约 3.2s：
+
+```text
+请求 1626859731.252
+响应 1626859734.465
+```
+
+随后 100 次均正常，未复现。原因待查：可能是首次请求/串口日志/任务调度，也可能是 CLI 3s 超时边界。当前不能据此判断 UDS 失败，但也不能忽略。
+
 ## 未覆盖
 
-- S3 5s 超时行为（需烧录带日志的固件）；
-- 连续 100 次 UDS 请求；
+- S3 5s 超时日志（需确认串口是否打印 `UDS: S3 timeout -> default session`）；
+- 首次请求 3.2s 延迟的根因；
 - `10 02` 编程会话、`3E 80` 抑制响应；
 - DTC `0x19/0x14` 和 FOTA。

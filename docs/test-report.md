@@ -62,6 +62,8 @@
 | A-UD-06 | 清 DTC | `14 FF FF FF` | 清后 `19 02 FF` 为空 | 待实现 |  |
 | A-UD-07 | 非法 DID | `22 1234` | `7F 22 31` | **通过**：`7F 22 31` | `test/records/20261105-uds-smoke.log` |
 | A-UD-08 | 读 VIN 多帧 | `22 F190` | 20 字节、FF+CF 正确 | **通过**：VIN `LFV2A21K7A3000001` | `test/records/20261105-uds-smoke.log` |
+| A-UD-09 | 连续 100 次读 DID | `for i in 1..100` | 100/100 成功 | **通过**：`real 5.834s`，无 fail | `test/records/20261105-uds-smoke.log` |
+| A-UD-10 | 首次请求延迟 | `session 03` + sleep 6 后首次读 | 不超时 | **待查**：一次响应晚 3.2s，后续未复现 | `test/records/20261105-uds-smoke.log` |
 
 ### 2.3 DTC
 
