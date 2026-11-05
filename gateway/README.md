@@ -26,6 +26,15 @@ make
 
 ## UDS CLI
 
+先拉起接口（`uds_cli` 不再自动执行 `ip link`，避免每次启动都 fork `ip` 导致卡顿）：
+
+```bash
+sudo ip link set can0 up type can bitrate 500000 restart-ms 100
+ip -details link show can0
+```
+
+再运行：
+
 ```bash
 ./uds_cli can0 session 03
 ./uds_cli can0 tester-present

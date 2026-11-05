@@ -20,8 +20,8 @@ int uds_client_init(uds_client_t *c, const char *ifname,
     if (c == NULL || ifname == NULL)
         return -1;
 
-    can_bring_up(ifname, 500000);   /* 尽力而为；可用性由 can_open 判定 */
-
+    /* 不在这里执行 `ip link set`：每次 CLI 启动都 fork ip 进程既慢，又可能在
+       接口状态异常时卡住。调用前由用户/服务显式把 can0 拉起。 */
     c->fd = can_open(ifname);
     if (c->fd < 0)
         return -1;
