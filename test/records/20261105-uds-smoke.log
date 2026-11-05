@@ -112,9 +112,26 @@ candump 显示响应晚了约 3.2s：
 
 随后 100 次均正常，未复现。原因待查：可能是首次请求/串口日志/任务调度，也可能是 CLI 3s 超时边界。当前不能据此判断 UDS 失败，但也不能忽略。
 
+## S3 超时（重新烧录后）
+
+```text
+17:10:03  ./uds_cli can0 session 03
+          TX: 10 03
+          RX: 50 03
+
+17:10:08  STM32: UDS: S3 timeout -> default session
+
+17:10:31  ./uds_cli can0 session 03
+          TX: 10 03
+          RX: 50 03
+
+17:10:36  STM32: UDS: S3 timeout -> default session
+```
+
+S3=5s 行为正确，且超时后再次进入编程会话仍正常。
+
 ## 未覆盖
 
-- S3 5s 超时日志（需确认串口是否打印 `UDS: S3 timeout -> default session`）；
-- 首次请求 3.2s 延迟的根因；
+- 首次请求 3.2s 延迟的根因（未复现，保留监控）；
 - `10 02` 编程会话、`3E 80` 抑制响应；
 - DTC `0x19/0x14` 和 FOTA。

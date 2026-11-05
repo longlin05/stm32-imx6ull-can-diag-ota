@@ -55,7 +55,7 @@
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
 | A-UD-01 | 会话控制 | `10 01` / `10 03` / `10 04` | 正响应/正确 NRC | **通过**：`50 01`、`50 03`、`7F 10 12` | `test/records/20261105-uds-smoke.log` |
-| A-UD-02 | TesterPresent | `3E 00`；S3 5s 待测 | 正响应/会话保持 | **通过（单次）**：`7E 00`；超时行为待测 | `test/records/20261105-uds-smoke.log` |
+| A-UD-02 | TesterPresent / S3 | `3E 00`；`session 03` 后等 6s | 正响应/5s 回默认 | **通过**：`7E 00`；两次 `UDS: S3 timeout -> default session` | `test/records/20261105-uds-smoke.log` |
 | A-UD-03 | 读版本 | `22 F180` | 正响应 | **通过**：`62 F1 80 10` | `test/records/20261105-uds-smoke.log` |
 | A-UD-04 | 读配置 DID | `22 F1A0/F1A1/F1A2` | 数据正确 | **通过**：`01`、`D0 07`(2000ms)、`10 27`(10000ms) | `test/records/20261105-uds-smoke.log` |
 | A-UD-05 | 读 DTC | `19 02 FF` | 能读到注入的 DTC | 待实现 |  |
