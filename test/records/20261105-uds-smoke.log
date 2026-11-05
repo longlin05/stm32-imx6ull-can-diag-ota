@@ -1,0 +1,163 @@
+# 2026-11-05 UDS 冒烟测试
+
+平台：STM32F407 + i.MX6ULL，真实 CAN 500 kbps。
+
+## 命令与输出
+
+```text
+./uds_cli can0 session 03
+TX: 10 03
+RX: 50 03
+{"cmd":"session","status":"ok"}
+
+./uds_cli can0 tester-present
+TX: 3E 00
+RX: 7E 00
+{"cmd":"tester-present","status":"ok"}
+
+./uds_cli can0 read-did F180
+TX: 22 F1 80
+RX: 62 F1 80 10
+{"cmd":"read-did","did":"F180","status":"ok","len":1}
+
+./uds_cli can0 read-did F190
+TX: 22 F1 90
+RX: 62 F1 90 4C 46 56 32 41 32 31 4B 37 41 33 30 30 30 30 30 31
+{"cmd":"read-did","did":"F190","status":"ok","len":17}
+VIN: LFV2A21K7A3000001
+
+./uds_cli can0 read-did 1234
+TX: 22 12 34
+RX: 7F 22 31
+{"cmd":"read-did","status":"nrc","nrc":"0x31"}
+```
+
+## candump
+
+```text
+7E0 [8] 02 10 03 CC CC CC CC CC
+7E8 [8] 02 50 03 CC CC CC CC CC
+
+7E0 [8] 02 3E 00 CC CC CC CC CC
+7E8 [8] 02 7E 00 CC CC CC CC CC
+
+7E0 [8] 03 22 F1 80 CC CC CC CC
+7E8 [8] 04 62 F1 80 10 CC CC CC
+
+7E0 [8] 03 22 F1 90 CC CC CC CC
+7E8 [8] 10 14 62 F1 90 4C 46 56
+7E0 [8] 30 08 05 CC CC CC CC CC
+7E8 [8] 21 32 41 32 31 4B 37 41
+7E8 [8] 22 33 30 30 30 30 30 31
+
+7E0 [8] 03 22 12 34 CC CC CC CC
+7E8 [8] 03 7F 22 31 CC CC CC CC
+
+7E0 [8] 02 10 01 CC CC CC CC CC
+7E8 [8] 02 50 01 CC CC CC CC CC
+
+7E0 [8] 02 10 04 CC CC CC CC CC
+7E8 [8] 03 7F 10 12 CC CC CC CC
+
+7E0 [8] 03 22 F1 A0 CC CC CC CC
+7E8 [8] 04 62 F1 A0 01 CC CC CC
+
+7E0 [8] 03 22 F1 A1 CC CC CC CC
+7E8 [8] 05 62 F1 A1 D0 07 CC CC
+
+7E0 [8] 03 22 F1 A2 CC CC CC CC
+7E8 [8] 05 62 F1 A2 10 27 CC CC
+```
+
+## 结论
+
+- `0x10 03` → `50 03` 通过；
+- `0x10 01` → `50 01` 通过；
+- `0x10 04` → `7F 10 12` 通过；
+- `0x3E 00` → `7E 00` 通过；
+- `0x22 F180` → `62 F1 80 10`；
+- `0x22 F190` → 20 字节、FF + 2 CF，VIN 正确；
+- `0x22 F1A0` → PIR=01；
+- `0x22 F1A1` → `D0 07` = 2000ms；
+- `0x22 F1A2` → `10 27` = 10000ms；
+- 未知 DID → `7F 22 31`。
+
+## 连续 100 次
+
+```text
+time for i in $(seq 1 100); do
+  ./uds_cli can0 read-did F180 >/dev/null || { echo "fail at $i"; break; }
+done
+
+real    0m5.834s
+```
+
+100 次全部成功，无 fail。
+
+## 一次异常
+
+在另一次 `session 03` + `sleep 6` 之后，首次 `read-did F180` 打印 timeout：
+
+```text
+TX: 22 F1 80
+{"cmd":"read-did","status":"timeout"}
+```
+
+candump 显示响应晚了约 3.2s：
+
+```text
+请求 1626859731.252
+响应 1626859734.465
+```
+
+随后 100 次均正常，未复现。原因待查：可能是首次请求/串口日志/任务调度，也可能是 CLI 3s 超时边界。当前不能据此判断 UDS 失败，但也不能忽略。
+
+## S3 超时（重新烧录后）
+
+```text
+17:10:03  ./uds_cli can0 session 03
+          TX: 10 03
+          RX: 50 03
+
+17:10:08  STM32: UDS: S3 timeout -> default session
+
+17:10:31  ./uds_cli can0 session 03
+          TX: 10 03
+          RX: 50 03
+
+17:10:36  STM32: UDS: S3 timeout -> default session
+```
+
+S3=5s 行为正确，且超时后再次进入编程会话仍正常。
+
+## 首次卡顿定位与修复
+
+第一次 100 次循环在发第一帧前卡住，candump 无请求。
+
+根因：`uds_client_init()` 每次进程启动都执行：
+
+```c
+can_bring_up(ifname, 500000);
+```
+
+内部 `system("ip link set ...")` 在接口状态异常时可能卡住。
+
+修复：删除 `uds_cli` 的自动 `ip link`，要求先手动拉起接口。
+
+重新编译后 100 次：
+
+```text
+time for i in $(seq 1 100); do
+  ./uds_cli can0 read-did F180 >/dev/null || { echo "fail at $i"; break; }
+done
+
+real    0m2.034s
+```
+
+100/100 成功，无卡顿。
+
+## 未覆盖
+
+- 首次请求 3.2s 延迟的根因（未复现，保留监控）；
+- `10 02` 编程会话、`3E 80` 抑制响应；
+- DTC `0x19/0x14` 和 FOTA。

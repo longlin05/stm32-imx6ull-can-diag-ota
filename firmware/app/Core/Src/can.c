@@ -163,6 +163,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
    本文件只负责维护，读取接口是 CAN_GetTxDropCount() */
 static uint16_t s_can_tx_drop_count = 0U;
 
+/* 发送邮箱/AddTxMessage 失败只详细打印一次，避免故障时刷爆串口。
+   成功发出一帧后清除，下一次故障还能再看到现场。 */
+static uint8_t s_tx_add_fail_logged = 0U;
+
 /* 总线是否已启动。CAN_Send() 用它挡住「HAL_CAN_Start() 尚未调用就发帧」的情况，
    避免调用方拿到无从解释的 HAL 错误 */
 static uint8_t s_can_started = 0U;
@@ -460,6 +464,7 @@ static uint8_t CAN_SendLocked(uint32_t std_id, const uint8_t *data, uint8_t dlc,
   uint32_t TxMailbox;
   uint32_t start;
   uint8_t  i;
+  HAL_StatusTypeDef st;
 
   if (s_can_started == 0U)
   {
@@ -507,10 +512,36 @@ static uint8_t CAN_SendLocked(uint32_t std_id, const uint8_t *data, uint8_t dlc,
   {
     if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0U)
     {
-      if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, txbuf, &TxMailbox) == HAL_OK)
+      st = HAL_CAN_AddTxMessage(&hcan1, &TxHeader, txbuf, &TxMailbox);
+      if (st == HAL_OK)
       {
+        s_tx_add_fail_logged = 0U;
         return CAN_SEND_OK;
       }
+
+      if (s_tx_add_fail_logged == 0U)
+      {
+        s_tx_add_fail_logged = 1U;
+        CAN_LOG("CAN tx: AddTx failed st=%d state=%d err=0x%08lX ESR=0x%08lX TSR=0x%08lX MCR=0x%08lX MSR=0x%08lX\r\n",
+                (int)st,
+                (int)HAL_CAN_GetState(&hcan1),
+                (unsigned long)HAL_CAN_GetError(&hcan1),
+                (unsigned long)hcan1.Instance->ESR,
+                (unsigned long)hcan1.Instance->TSR,
+                (unsigned long)hcan1.Instance->MCR,
+                (unsigned long)hcan1.Instance->MSR);
+      }
+    }
+    else if (s_tx_add_fail_logged == 0U)
+    {
+      s_tx_add_fail_logged = 1U;
+      CAN_LOG("CAN tx: no free mailbox state=%d err=0x%08lX ESR=0x%08lX TSR=0x%08lX MCR=0x%08lX MSR=0x%08lX\r\n",
+              (int)HAL_CAN_GetState(&hcan1),
+              (unsigned long)HAL_CAN_GetError(&hcan1),
+              (unsigned long)hcan1.Instance->ESR,
+              (unsigned long)hcan1.Instance->TSR,
+              (unsigned long)hcan1.Instance->MCR,
+              (unsigned long)hcan1.Instance->MSR);
     }
 
     if ((timeout_ms == 0U) ||

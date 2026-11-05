@@ -10,6 +10,7 @@ Release/
 gateway/gw
 gateway/mock_ecu
 gateway/selftest
+gateway/uds_cli
 *.o
 *.d
 *.elf

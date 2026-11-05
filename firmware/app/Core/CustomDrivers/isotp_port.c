@@ -15,13 +15,13 @@
   *
   *   isotp_tick() ──tx_frame()──→ CAN_Send() ──→ 发送邮箱 → 总线
   *
-  *   isotp_rx_ready() ──把数据拷进 s_echo_buf──→ isotp_send() 原样发回 0x7E8
+  *   isotp_rx_ready() ──把数据拷进 s_uds_resp_buf──→ isotp_send() 原样发回 0x7E8
   *
   * 为什么 echo 要单独拷一份：
   *   isotp_send() 只保存 data 指针，多帧发送期间每个 tick 都会从这块内存取
   *   下一段 7 字节。如果直接传 isotp_rx_data()（即 rx_buf），发送途中又收到
   *   新消息就会把正在发的数据改掉；传局部数组则在发送完成前就出了作用域。
-  *   所以用静态 s_echo_buf，等 isotp_tx_done() 之后才认为它可以复用。
+  *   所以用静态 s_uds_resp_buf，等 isotp_tx_done() 之后才认为它可以复用。
   ******************************************************************************
   */
 
@@ -30,6 +30,7 @@
 
 #include "can.h"        /* CAN_Send() / CAN_Receive_Msg() / CAN_RxMsgTypeDef */
 #include "app_cmd.h"    /* AppCmd_ProcessFrame() */
+#include "uds_server.h" /* UdsServer_Handle() / UdsServer_Tick() */
 
 #include "main.h"       /* HAL_GetTick() */
 
@@ -96,7 +97,7 @@ static isotp_ctx_t s_isotp;
     所以这里不需要额外的忙标志。
     长度按 ISOTP_PORT_MAX_PAYLOAD 分配，和 core 的 rx_buf 一样大，任何一条
     合法的 ISO-TP 消息（≤4095 字节）都能原样回放 */
-static uint8_t s_echo_buf[ISOTP_PORT_MAX_PAYLOAD];
+static uint8_t s_uds_resp_buf[ISOTP_PORT_MAX_PAYLOAD];
 
 /** 当前广播的流控参数：接收方向回 FC 时用（bs=0 不限块长，stmin=0 无间隔）。
     运行时由 IsoTpPort_SetFlowControl() 修改，写的是同一份状态 */
@@ -437,20 +438,21 @@ static void isotp_drain_rx(void)
 }
 
 /**
-  * @brief  收到完整 ISO-TP 消息后，原样发回 0x7E8（echo）
+  * @brief  收到完整 ISO-TP 消息后交给 UDS Server，并把响应发回 0x7E8
   * @note   发送忙时不做任何事：rx 状态保持 DONE，下个 tick 再试。这样既不会
-  *         丢消息，也不会覆盖正在发送的 s_echo_buf。
+  *         丢消息，也不会覆盖正在发送的 s_uds_resp_buf。
   */
-static void isotp_echo_if_ready(void)
+static void isotp_uds_if_ready(void)
 {
   uint16_t len;
+  uint16_t resp_len;
 
   /* 上一次发送以超时 / 收到 OVFLW 收尾时，核心把 tx_state 停在 TIMEOUT 或
-     ABORT，而 isotp_send() 只接受 IDLE/DONE —— 不拨回来，echo 就会永久卡死
+     ABORT，而 isotp_send() 只接受 IDLE/DONE —— 不拨回来，UDS 响应就发不出去
      （每 tick 都试、每次都 -1）。核心代码不在本文件维护，所以在这里复位 */
   if (s_isotp.tx_state == ISOTP_TX_TIMEOUT)
   {
-    ISOTP_LOG("ISOTP tx: N_Bs timeout after %lums (no FC from peer), echo aborted at %u/%uB\r\n",
+    ISOTP_LOG("ISOTP tx: N_Bs timeout after %lums (no FC from peer), UDS response aborted at %u/%uB\r\n",
               (unsigned long)((s_tx_active != 0U) ? (HAL_GetTick() - s_tx_start_ms) : 0U),
               (unsigned)s_isotp.tx_pos, (unsigned)s_isotp.tx_len);
     s_tx_active = 0U;
@@ -458,7 +460,7 @@ static void isotp_echo_if_ready(void)
   }
   else if (s_isotp.tx_state == ISOTP_TX_ABORT)
   {
-    ISOTP_LOG("ISOTP tx: peer FC OVFLW after %lums, echo aborted at %u/%uB\r\n",
+    ISOTP_LOG("ISOTP tx: peer FC OVFLW after %lums, UDS response aborted at %u/%uB\r\n",
               (unsigned long)((s_tx_active != 0U) ? (HAL_GetTick() - s_tx_start_ms) : 0U),
               (unsigned)s_isotp.tx_pos, (unsigned)s_isotp.tx_len);
     s_tx_active = 0U;
@@ -487,17 +489,26 @@ static void isotp_echo_if_ready(void)
     return;
   }
 
-  /* 先拷贝再 reset：reset 之后 rx_buf 就可以接新消息，不会动到 echo 数据 */
-  memcpy(s_echo_buf, isotp_rx_data(&s_isotp), len);
+  /* UDS Server 直接写入静态响应缓冲；isotp_send() 只保存指针，
+     所以响应发完前不能复用这块缓冲（tx_state 会保证这一点）。 */
+  resp_len = UdsServer_Handle(isotp_rx_data(&s_isotp), len,
+                              s_uds_resp_buf, sizeof s_uds_resp_buf);
 
-  if (isotp_send(&s_isotp, s_echo_buf, len) == 0)
+  /* 3E 80 这类“抑制正响应”的请求不需要回包，直接释放接收状态 */
+  if (resp_len == 0U)
+  {
+    isotp_reset_rx(&s_isotp);
+    return;
+  }
+
+  if (isotp_send(&s_isotp, s_uds_resp_buf, resp_len) == 0)
   {
     s_tx_active   = 1U;
     s_tx_start_ms = HAL_GetTick();
-    s_tx_len      = len;
+    s_tx_len      = resp_len;
 
-    ISOTP_LOG("ISOTP tx: echo started %uB -> 0x%03lX\r\n",
-              (unsigned)len, (unsigned long)ISOTP_PORT_TX_ID);
+    ISOTP_LOG("ISOTP tx: UDS response started %uB -> 0x%03lX\r\n",
+              (unsigned)resp_len, (unsigned long)ISOTP_PORT_TX_ID);
     isotp_reset_rx(&s_isotp);   /* 发送已受理，接收侧可以接下一帧 */
   }
   /* isotp_send 返回 -1 时保持 rx 状态，下个 tick 重试 */
@@ -539,7 +550,7 @@ static void isotp_report_tx_done(void)
 
   isotp_timing_add(&s_tx_timing, s_tx_len, ms);
 
-  ISOTP_LOG("ISOTP tx: %uB echo in %lums | %luB/s\r\n",
+  ISOTP_LOG("ISOTP tx: %uB UDS response in %lums | %luB/s\r\n",
             (unsigned)s_tx_len, (unsigned long)ms, (unsigned long)avg);
 
   /* 累计统计：rx/tx 各自的最短/平均/最长 + 该方向累计吞吐，最后是两侧合计。
@@ -611,6 +622,8 @@ void IsoTpPort_Init(void)
              s_flow_stmin,
              isotp_tx_frame,
              isotp_now_ms);
+
+  UdsServer_Init();
 }
 
 void IsoTpPort_SetFlowControl(uint8_t bs, uint8_t stmin)
@@ -715,11 +728,14 @@ void IsoTpPort_Task(void *argument)
       s_rx_abort_reported = 0U;   /* 已离开 ABORT，允许下一条再报 */
     }
 
-    /* 3. 完整消息到了就 echo；发送忙就留到下个 tick。
-          s_echo_buf 的复用由核心的 tx_state 把关，发完之前 isotp_send 会拒绝 */
-    isotp_echo_if_ready();
+    /* 3. UDS S3 会话超时检查（不打印，避免 1ms 任务刷日志） */
+    UdsServer_Tick(HAL_GetTick());
 
-    /* 4. 回显发完就结算：单条耗时/吞吐 + 累计统计 */
+    /* 4. 完整消息到了就交给 UDS Server；发送忙就留到下个 tick。
+          s_uds_resp_buf 的复用由核心的 tx_state 把关，发完之前 isotp_send 会拒绝 */
+    isotp_uds_if_ready();
+
+    /* 5. UDS 响应发完就结算：单条耗时/吞吐 + 累计统计 */
     isotp_report_tx_done();
 
     vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(ISOTP_PORT_TASK_PERIOD_MS));

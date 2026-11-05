@@ -1,6 +1,6 @@
 # STM32 应用（A 项目）
 
-从已经跑通的 `My_AI` 工程整理而来，加入 ISO-TP 服务端（echo 阶段）。
+从已经跑通的 `My_AI` 工程整理而来，加入 ISO-TP + UDS 服务端。
 
 ## 功能
 
@@ -8,7 +8,7 @@
 - HC-SR501 PIR；
 - CAN 命令/ACK（`0x221/0x222/0x228`）；
 - ISO-TP 服务端（`0x7E0/0x7E8`）；
-- 收到完整 ISO-TP 消息后原样回显；
+- UDS 最小服务端：`0x10 / 0x3E / 0x22`；
 - CAN RX 中断 → 32 帧软件环形缓冲 → `IsoTpPort_Task` 1ms 消费；
 - DHT11 4ms 临界区期间 CAN 中断仍可进（CAN IRQ 优先级 4，ISR 不调用 FreeRTOS API）。
 
@@ -22,7 +22,8 @@ Core/
 │   ├── app_cmd.c/h      # 0x221/0x222/0x228
 │   ├── app_report.c/h   # 0x111/0x112/0x113
 │   ├── isotp.c/h        # 平台无关 ISO-TP 核心（与 gateway 同源）
-│   ├── isotp_port.c/h   # HAL CAN + 1ms 任务 + echo
+│   ├── isotp_port.c/h   # HAL CAN + 1ms 任务 + 收完交给 UDS
+│   ├── uds_server.c/h   # 0x10 / 0x3E / 0x22
 │   └── driver_pir.c/h
 ├── Startup/
 ├── Docs/
@@ -62,8 +63,31 @@ N_Bs / N_Cr：1000 ms
   - 丢 FC → gw `TX_TIMEOUT`，STM32 `N_Cr` 超时；
   - 错序 CF → SN mismatch + `FC OVFLW`；
   - 丢最后一个 CF → STM32 `N_Cr` 超时。
+- UDS 冒烟（2026-11-05）：
+  - `10 03` → `50 03`；
+  - `3E 00` → `7E 00`；
+  - `22 F180` → `62 F1 80 10`；
+  - `22 F190` → 20 字节 VIN，FF+CF；
+  - `22 1234` → `7F 22 31`。
+
+## UDS 服务
+
+```text
+0x10 01/02/03   会话控制
+0x3E 00         保活
+0x22 DID        读标识
+```
+
+DID：
+
+```text
+F190 VIN(17B)  F180 FW  F181 PROTO
+F182 CALIB     F1A0 PIR F1A1 ENV_PERIOD  F1A2 HB_PERIOD
+```
+
+S3 会话超时 5s；不支持的服务返回 `7F SID 11`。
 
 ## 注意
 
-- `isotp.c/h` 是 STM32 实测快照；`gateway/src/isotp.c` 后续又加了 DLC/发送失败防护，两边需要再同步一次并重跑 4095。
-- 当前只做 echo，UDS 服务层是下一步。
+- `isotp.c/h` 是 STM32 实测 ISO-TP 快照；`gateway/src/isotp.c` 后续又加了 DLC/发送失败防护，两边需要再同步一次并重跑 4095。
+- UDS 服务端代码已写好，但还需要上板联调；测试通过前不要标记为已验证。

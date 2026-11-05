@@ -54,13 +54,16 @@
 
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
-| A-UD-01 | 默认/扩展会话 | `10 01` / `10 03` | 正响应，会话状态正确 | 待执行 |  |
-| A-UD-02 | TesterPresent | 每 2 s 发 `3E 00` | 5 s 内不掉会话 | 待执行 |  |
-| A-UD-03 | 读版本 | `22 0100` | 4 字节版本，< 50 ms | 待执行 |  |
-| A-UD-04 | 读错误计数 | `22 0102` | 与串口统计一致 | 待执行 |  |
-| A-UD-05 | 读 DTC | `19 02 FF` | 能读到注入的 DTC | 待执行 |  |
-| A-UD-06 | 清 DTC | `14 FF FF FF` | 清后 `19 02 FF` 为空 | 待执行 |  |
-| A-UD-07 | 非法服务 | `22` 长度错/未知 DID | 返回正确 NRC | 待执行 |  |
+| A-UD-01 | 会话控制 | `10 01` / `10 03` / `10 04` | 正响应/正确 NRC | **通过**：`50 01`、`50 03`、`7F 10 12` | `test/records/20261105-uds-smoke.log` |
+| A-UD-02 | TesterPresent / S3 | `3E 00`；`session 03` 后等 6s | 正响应/5s 回默认 | **通过**：`7E 00`；两次 `UDS: S3 timeout -> default session` | `test/records/20261105-uds-smoke.log` |
+| A-UD-03 | 读版本 | `22 F180` | 正响应 | **通过**：`62 F1 80 10` | `test/records/20261105-uds-smoke.log` |
+| A-UD-04 | 读配置 DID | `22 F1A0/F1A1/F1A2` | 数据正确 | **通过**：`01`、`D0 07`(2000ms)、`10 27`(10000ms) | `test/records/20261105-uds-smoke.log` |
+| A-UD-05 | 读 DTC | `19 02 FF` | 能读到注入的 DTC | 待实现 |  |
+| A-UD-06 | 清 DTC | `14 FF FF FF` | 清后 `19 02 FF` 为空 | 待实现 |  |
+| A-UD-07 | 非法 DID | `22 1234` | `7F 22 31` | **通过**：`7F 22 31` | `test/records/20261105-uds-smoke.log` |
+| A-UD-08 | 读 VIN 多帧 | `22 F190` | 20 字节、FF+CF 正确 | **通过**：VIN `LFV2A21K7A3000001` | `test/records/20261105-uds-smoke.log` |
+| A-UD-09 | 连续 100 次读 DID | `for i in 1..100` | 100/100 成功 | **通过**：`real 2.034s`，无 fail/卡顿 | `test/records/20261105-uds-smoke.log` |
+| A-UD-10 | 首次请求延迟 | 去掉每次 `ip link` 后重测 | 不超时 | **已修复**：`uds_cli` 不再自动 `ip link`；100 次 2.034s | `test/records/20261105-uds-smoke.log` |
 
 ### 2.3 DTC
 

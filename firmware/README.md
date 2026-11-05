@@ -36,7 +36,7 @@ https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 
 - 没有提交 `Drivers/`、`Debug/`、`.metadata/`；HAL/CMSIS 用 CubeMX 按 `.ioc` 生成。
 - `baseline/can_test` 只发一次、收一次，是 bring-up 示例，不是最终网关。
-- `app` 是 A 项目实际 STM32 应用：CAN 命令/ACK + ISO-TP echo；下一步加 UDS。
+- `app` 是 A 项目实际 STM32 应用：CAN 命令/ACK + ISO-TP + UDS 最小服务端。
 - `app/Core/CustomDrivers/isotp.c` 是 STM32 实测快照；`gateway/src/isotp.c` 后续加了防护，两边需再同步并重跑 4095。
 - `reference/AImate` 是旧集成工程的参考代码，不是最终 App；A 项目最终用 DHT11/PIR。
 - `reference/AImate` 里仍然有 AHT20 代码，仅作 B 项目参考；不要把它当 Linux 驱动。
@@ -46,7 +46,7 @@ https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 1. CAN baseline：错误帧统计、bus-off 恢复、`FW_VERSION`；
 2. ✅ Linux → STM32 命令/ACK（`0x221/0x222/0x228`）：1000/1000，P99 22ms；
 3. ✅ ISO-TP：SF/FF/CF/FC、BS/STmin、4095 字节、真实 CAN + DHT11 并发；
-4. UDS `0x10/0x3E/0x22`；
+4. 🟡 UDS `0x10/0x3E/0x22`：代码已写，待上板联调；
 5. UDS `0x19/0x14` + DTC；
 6. OTA Client（写非活动分区）。
 
