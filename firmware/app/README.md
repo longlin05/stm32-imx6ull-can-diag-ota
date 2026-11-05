@@ -63,6 +63,12 @@ N_Bs / N_Cr：1000 ms
   - 丢 FC → gw `TX_TIMEOUT`，STM32 `N_Cr` 超时；
   - 错序 CF → SN mismatch + `FC OVFLW`；
   - 丢最后一个 CF → STM32 `N_Cr` 超时。
+- UDS 冒烟（2026-11-05）：
+  - `10 03` → `50 03`；
+  - `3E 00` → `7E 00`；
+  - `22 F180` → `62 F1 80 10`；
+  - `22 F190` → 20 字节 VIN，FF+CF；
+  - `22 1234` → `7F 22 31`。
 
 ## UDS 服务
 
