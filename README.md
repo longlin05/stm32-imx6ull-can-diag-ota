@@ -299,15 +299,16 @@ CSDN：`blog.csdn.net/longlin101`
 2. [01 基线审计：从“能通”到“可复现”](https://blog.csdn.net/longlin101/article/details/169563492)
 3. [02 双向命令/ACK：1000 次压测与 50 ms 超时假丢包](https://blog.csdn.net/longlin101/article/details/169950471)
 4. [03 ISO-TP：从 0 到 4095 字节，以及 30% 丢帧是怎么修掉的](https://blog.csdn.net/longlin101/article/details/170053591)
+5. [04 UDS 最小闭环：0x10/0x3E/0x22，会话、S3 与读 VIN](https://blog.csdn.net/longlin101/article/details/170145581)
 
 计划：
 
-5. 04 UDS 子集：`0x10/0x3E/0x22/0x19/0x14` + DTC
-6. 05 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
-7. 06 OTA 实战：50 次升级与掉电测试
-8. 07 Linux 网关：SocketCAN + 诊断 CLI + SQLite
-9. 08 i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备
-10. 09 测试报告：24h/72h、P99、bus-off 数据
+6. 05 DTC：`0x19/0x14`，5 类故障检测、存储与清除
+7. 06 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
+8. 07 OTA 实战：50 次升级与掉电测试
+9. 08 Linux 网关：SocketCAN + 诊断 CLI + SQLite
+10. 09 i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备
+11. 10 测试报告：24h/72h、P99、bus-off 数据
 
 ---
 

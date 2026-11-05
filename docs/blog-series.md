@@ -30,7 +30,7 @@
 | 01 | 基线审计：从“能通”到“可复现” | `a-baseline-stm32` | 已发布 | https://blog.csdn.net/longlin101/article/details/169563492 |
 | 02 | 双向命令/ACK：1000 次压测，以及 50 ms 超时为什么是“假丢包” | `a-v0.2-bidirectional` | 已发布 | https://blog.csdn.net/longlin101/article/details/169950471 |
 | 03 | ISO-TP 多帧：4095 字节、BS/STmin、DHT11 并发与异常注入 | `a-v0.4-isotp-stm32` | 已发布 | https://blog.csdn.net/longlin101/article/details/170053591 |
-| 04 | UDS 最小闭环：`0x10/0x3E/0x22`，会话、S3 与读 VIN | `a-v0.5-uds` | 本地稿完成，待发布 | [`docs/blog/04-uds.md`](blog/04-uds.md) |
+| 04 | UDS 最小闭环：`0x10/0x3E/0x22`，会话、S3 与读 VIN | `a-v0.5-uds` | 已发布 | https://blog.csdn.net/longlin101/article/details/170145581 |
 | 05 | DTC：`0x19/0x14`，5 类故障检测、存储与清除 | `a-v0.6-dtc` | 待写 |  |
 | 06 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.7-boot` | 待写 |  |
 | 07 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
