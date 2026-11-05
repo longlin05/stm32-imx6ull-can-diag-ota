@@ -31,6 +31,7 @@
 #include "can.h"        /* CAN_Send() / CAN_Receive_Msg() / CAN_RxMsgTypeDef */
 #include "app_cmd.h"    /* AppCmd_ProcessFrame() */
 #include "uds_server.h" /* UdsServer_Handle() / UdsServer_Tick() */
+#include "dtc.h"        /* Dtc_Init() / Dtc_ReportImmediate() */
 
 #include "main.h"       /* HAL_GetTick() */
 
@@ -624,6 +625,7 @@ void IsoTpPort_Init(void)
              isotp_now_ms);
 
   UdsServer_Init();
+  Dtc_Init();
 }
 
 void IsoTpPort_SetFlowControl(uint8_t bs, uint8_t stmin)
@@ -730,6 +732,11 @@ void IsoTpPort_Task(void *argument)
 
     /* 3. UDS S3 会话超时检查（不打印，避免 1ms 任务刷日志） */
     UdsServer_Tick(HAL_GetTick());
+
+    /* 3.1 CAN bus-off 立即置位 C002；恢复后清 testFailed，confirmed 留给 0x14 */
+    Dtc_ReportImmediate(DTC_CODE_CAN_BUSOFF,
+                        (HAL_CAN_GetState(&hcan1) == HAL_CAN_STATE_BUS_OFF)
+                        ? 1U : 0U);
 
     /* 4. 完整消息到了就交给 UDS Server；发送忙就留到下个 tick。
           s_uds_resp_buf 的复用由核心的 tx_state 把关，发完之前 isotp_send 会拒绝 */
