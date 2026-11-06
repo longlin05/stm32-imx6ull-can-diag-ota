@@ -300,10 +300,10 @@ CSDN：`blog.csdn.net/longlin101`
 3. [02 双向命令/ACK：1000 次压测与 50 ms 超时假丢包](https://blog.csdn.net/longlin101/article/details/169950471)
 4. [03 ISO-TP：从 0 到 4095 字节，以及 30% 丢帧是怎么修掉的](https://blog.csdn.net/longlin101/article/details/170053591)
 5. [04 UDS 最小闭环：0x10/0x3E/0x22，会话、S3 与读 VIN](https://blog.csdn.net/longlin101/article/details/170145581)
+6. [05 UDS DTC：0x19/0x14，从故障检测到 Flash 掉电保存](https://blog.csdn.net/longlin101/article/details/170192523)
 
 计划：
 
-6. 05 DTC：`0x19/0x14`，5 类故障检测、存储与清除
 7. 06 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
 8. 07 OTA 实战：50 次升级与掉电测试
 9. 08 Linux 网关：SocketCAN + 诊断 CLI + SQLite
