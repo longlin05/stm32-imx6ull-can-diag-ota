@@ -3,6 +3,8 @@
 A 项目的 STM32F407 Bootloader。核心逻辑、HAL Flash 适配、Metadata 双记录、镜像校验、跳转代码已写；
 还差 CubeIDE 工程和 App A/B 构建配置。
 
+具体建法见：[BUILD_CUBEIDE.md](BUILD_CUBEIDE.md)。
+
 ## 当前完成
 
 - CRC-32/ISO-HDLC（一次性 + 流式）；
