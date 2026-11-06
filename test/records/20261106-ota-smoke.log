@@ -1,0 +1,100 @@
+# 2026-11-06 OTA 冒烟测试
+
+平台：STM32F407 Bootloader + App A/B，i.MX6ULL Linux。
+
+## 1. OTA 到 A
+
+当前 active=B，执行：
+
+```text
+./uds_cli can0 ota app_a.img 0x08020000
+0x34 OK, image=73528 bytes, addr=0x08020000, max_block=1024
+...
+OTA image transferred, 0x37 OK
+```
+
+复位后：
+
+```text
+PC = 0x08025CCC
+Metadata:
+  seq=21
+  active=A
+  trial=NONE
+  states=[confirmed, confirmed]
+```
+
+App A 启动并确认成功。
+
+## 2. OTA 到 B
+
+当前 active=A，执行：
+
+```text
+./uds_cli can0 ota app_b.img 0x08060000
+0x34 OK, image=73528 bytes, addr=0x08060000, max_block=1024
+...
+OTA image transferred, 0x37 OK
+```
+
+复位后：
+
+```text
+PC = 0x08065CD8
+Metadata:
+  seq=18
+  active=B
+  trial=NONE
+  states=[confirmed, confirmed]
+```
+
+App B 启动并确认成功。
+
+## 3. OTA 中断
+
+当前 active=B，OTA 写 A：
+
+```text
+0x34 OK
+...
+20480/73528
+Ctrl-C
+```
+
+复位后：
+
+```text
+PC = 0x08065CD4
+Metadata:
+  active=B
+  trial=NONE
+```
+
+说明 A 槽半包没有生效，Bootloader 继续启动 B。
+
+## 4. 再次完整 OTA 到 A
+
+```text
+0x34 OK
+...
+OTA image transferred, 0x37 OK
+```
+
+复位后：
+
+```text
+PC = 0x08025CCC
+Metadata:
+  seq=21 active=A trial=NONE states=[confirmed, confirmed]
+```
+
+## 结论
+
+```text
+OTA A→B                      通过
+OTA B→A                      通过
+OTA 中断后保持当前槽          通过
+Bootloader trial/confirm     通过
+```
+
+未执行：10 次循环、50 次升级、多点掉电、24h。

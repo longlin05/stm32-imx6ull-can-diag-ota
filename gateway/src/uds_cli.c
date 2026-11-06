@@ -38,6 +38,115 @@ static void print_dtc_records(const uint8_t *records, uint16_t len)
     }
 }
 
+
+static void put_be32(uint8_t *p, uint32_t v)
+{
+    p[0] = (uint8_t)(v >> 24);
+    p[1] = (uint8_t)(v >> 16);
+    p[2] = (uint8_t)(v >> 8);
+    p[3] = (uint8_t)v;
+}
+
+static int run_ota(const char *ifname, const char *path, const char *addr_text)
+{
+    FILE *fp;
+    long file_size;
+    uint8_t *image;
+    uint8_t req[1 + 1024];
+    uint8_t resp[256];
+    uint16_t resp_len;
+    uint32_t addr;
+    uint32_t offset;
+    uint8_t counter = 1;
+    uds_client_t client;
+    char *end = NULL;
+
+    addr = (uint32_t)strtoul(addr_text, &end, 0);
+    if (end == addr_text || *end != '\0') {
+        fprintf(stderr, "bad address: %s\n", addr_text);
+        return 1;
+    }
+
+    fp = fopen(path, "rb");
+    if (!fp) {
+        perror(path);
+        return 1;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    if (file_size <= 0 || file_size > 0x40000) {
+        fprintf(stderr, "bad image size %ld\n", file_size);
+        fclose(fp);
+        return 1;
+    }
+    image = malloc((size_t)file_size);
+    if (!image || fread(image, 1, (size_t)file_size, fp) != (size_t)file_size) {
+        fprintf(stderr, "read %s failed\n", path);
+        free(image);
+        fclose(fp);
+        return 1;
+    }
+    fclose(fp);
+
+    if (uds_client_init(&client, ifname, 8, 5) != 0) {
+        fprintf(stderr, "open %s failed\n", ifname);
+        free(image);
+        return 1;
+    }
+
+    req[0] = 0x34;
+    req[1] = 0x00;
+    req[2] = 0x44;
+    put_be32(&req[3], addr);
+    put_be32(&req[7], (uint32_t)file_size);
+    if (uds_request(&client, req, 11, resp, sizeof resp, &resp_len, 15000) != 0 ||
+        resp_len < 1 || resp[0] != 0x74) {
+        fprintf(stderr, "0x34 failed\n");
+        uds_client_close(&client);
+        free(image);
+        return 1;
+    }
+    printf("0x34 OK, image=%ld bytes, addr=0x%08X, max_block=%u\n",
+           file_size, addr, (resp_len >= 4) ? (unsigned)((resp[2] << 8) | resp[3]) : 0U);
+
+    offset = 0;
+    while (offset < (uint32_t)file_size) {
+        uint32_t chunk = (uint32_t)file_size - offset;
+        if (chunk > 1024U) chunk = 1024U;
+        req[0] = 0x36;
+        req[1] = counter;
+        memcpy(&req[2], image + offset, chunk);
+        if (uds_request(&client, req, (uint16_t)(2U + chunk),
+                        resp, sizeof resp, &resp_len, 5000) != 0 ||
+            resp_len < 2 || resp[0] != 0x76 || resp[1] != counter) {
+            fprintf(stderr, "0x36 failed at offset %u\n", (unsigned)offset);
+            uds_client_close(&client);
+            free(image);
+            return 1;
+        }
+        offset += chunk;
+        counter = (counter == 0xFFU) ? 0U : (uint8_t)(counter + 1U);
+        if ((offset % (10U * 1024U)) == 0U) {
+            printf("  %u/%ld\n", (unsigned)offset, file_size);
+        }
+    }
+
+    req[0] = 0x37;
+    if (uds_request(&client, req, 1, resp, sizeof resp, &resp_len, 10000) != 0 ||
+        resp_len < 1 || resp[0] != 0x77) {
+        fprintf(stderr, "0x37 failed\n");
+        uds_client_close(&client);
+        free(image);
+        return 1;
+    }
+
+    printf("OTA image transferred, 0x37 OK\n");
+    uds_client_close(&client);
+    free(image);
+    return 0;
+}
+
 static void usage(const char *prog)
 {
     fprintf(stderr,
@@ -48,8 +157,9 @@ static void usage(const char *prog)
             "  %s <ifname> read-dtc\n"
             "  %s <ifname> read-dtc-supported\n"
             "  %s <ifname> read-dtc-count\n"
-            "  %s <ifname> clear-dtc\n",
-            prog, prog, prog, prog, prog, prog, prog);
+            "  %s <ifname> clear-dtc\n"
+            "  %s <ifname> ota <image> <slot-base>\n",
+            prog, prog, prog, prog, prog, prog, prog, prog);
 }
 
 int main(int argc, char **argv)
@@ -74,6 +184,14 @@ int main(int argc, char **argv)
     }
     ifname = argv[1];
     cmd = argv[2];
+
+    if (strcmp(cmd, "ota") == 0) {
+        if (argc < 5) {
+            usage(argv[0]);
+            return 1;
+        }
+        return run_ota(ifname, argv[3], argv[4]);
+    }
 
     if (strcmp(cmd, "session") == 0) {
         uint16_t sub;

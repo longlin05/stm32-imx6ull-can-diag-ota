@@ -249,7 +249,7 @@ sudo /home/root/gw can0
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | **通过**：`10 01/03/04`、`3E 00`、`F180`、`F190`、配置 DID、100/100（2.034s）、S3 5s；首次卡顿已修复 |
 | UDS `0x19/0x14` | 5 类 DTC 可读/可清 | **真实 CAN 通过**：`19 02/0A/01`、C001=0x0D、C002=0x08、`14` 清除；置位/清除掉电保存（sector 7 已验证，迁 sector 4 后待复测） |
 | Bootloader A/B | App A/B、trial、rollback、confirm | **通过**：A 启动、trial B、未确认回滚 A、确认 B 固定启动 |
-| OTA | 50 次成功，掉电可回滚 | 待实现 |
+| OTA `0x34/0x36/0x37` | 写非活动槽、trial、回滚 | **冒烟通过**：A↔B 双向、中断后保持旧槽；10/50 次未做 |
 | 24h 稳定性 | 丢帧 < 0.01%，P99 < 50 ms | 待实现 |
 | bus-off 恢复 | 3 s 内恢复 | 待实现 |
 
@@ -268,7 +268,7 @@ sudo /home/root/gw can0
 - [x] UDS：`0x10 / 0x3E / 0x22`（会话/保活/读 DID/负响应/100 次通过）
 - [x] UDS：`0x19 / 0x14` + DTC（C001/C002/清除/Flash 持久化通过；DTC 已迁 sector 4，待复测）
 - [x] Bootloader：A/B、CRC、Metadata、跳转、trial/rollback/confirm 已实测通过
-- [ ] OTA：分片、ACK、断点续传、回滚
+- [x] OTA：`0x34/0x36/0x37` 写非活动槽（A↔B 冒烟通过；10/50 次未做）
 - [ ] Linux 网关：诊断 CLI + OTA + SQLite + MQTT
 - [ ] 故障注入 + 24h/72h 测试
 - [ ] README、demo 视频、测试报告

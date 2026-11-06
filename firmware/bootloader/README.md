@@ -35,7 +35,8 @@ boot_flash.h         Flash 操作接口
 boot_flash_stm32.c/h HAL 适配
 boot_jump.c/h        跳转
 boot_loader.c/h      上电选槽 + 跳转
-boot_app.c/h         App 自检确认（Boot_AppConfirm）
+boot_app.c/h         App 自检确认（Boot_AppConfirm）/试运行（Boot_StartTrial）
+ota_server.c/h      App OTA 0x34/0x36/0x37 写非活动槽
 linker/              Bootloader / App A / App B 链接脚本
 tools/mk_app_image.py 给 App bin 加 512B header
 ```
@@ -105,7 +106,7 @@ App A/B 都链接在各自槽位，UDS 正常。
 
 ## 下一步
 
-1. OTA 传输：`0x34/0x36/0x37` 写非活动槽；
+1. 用 `uds_cli can0 ota <image> <slot-base>` 做真实 OTA；
 2. 升级完成写 Metadata trial；
 3. 掉电/回滚测试；
 4. 50 次升级测试。

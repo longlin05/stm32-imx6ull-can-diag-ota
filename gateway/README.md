@@ -45,6 +45,10 @@ ip -details link show can0
 ./uds_cli can0 read-dtc-supported
 ./uds_cli can0 read-dtc-count
 ./uds_cli can0 clear-dtc
+
+# OTA：把镜像写到非活动槽
+./uds_cli can0 ota app_a.img 0x08020000
+./uds_cli can0 ota app_b.img 0x08060000
 ```
 
 `F190` 返回 17 字节 VIN，会走 ISO-TP 多帧，正好验证 FF/CF。
