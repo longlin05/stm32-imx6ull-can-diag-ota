@@ -88,9 +88,32 @@ ESR=0x4D000055 TSR=0x82000008 MCR=0x00010040 MSR=0x00000C08
 `ESR=0x4D000055` 的 `BOFF` 位为 1，DTC 捕获到了 bus-off；
 恢复后 `testFailed/pending` 清掉，保留 confirmed `0x08`，`0x14` 清除成功。
 
+## Flash 掉电保存
+
+置位 C001 后等 2s，断电重启：
+
+```text
+./uds_cli can0 read-dtc
+RX: 59 02 FF C0 01 0D
+```
+
+清除后等 3s，断电重启：
+
+```text
+./uds_cli can0 clear-dtc
+RX: 54
+
+（断电重启）
+
+./uds_cli can0 read-dtc
+RX: 59 02 FF
+```
+
+置位和清除都能跨重启保留。
+
 ## 备注
 
 - 输出里的 `DTC CC001` 是 CLI 打印格式多了一个 C，协议本身是 `C0 01`；
   已修正为 `DTC C001`。
 - STM32 日志 `tx=869` 是之前 bus-off/发送失败的历史累计，本轮 DTC 请求/响应正常。
-- RAM 版 DTC 掉电会丢，Flash 持久化下一步。
+- Flash 存储使用 sector 7（`0x08060000`），不是 sector 11。
