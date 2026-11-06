@@ -247,8 +247,8 @@ sudo /home/root/gw can0
 | ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | **真实 CAN 通过**：drop-fc / mangle-cf / drop-last-cf；selftest 9 用例 |
 | DHT11 并发 | 4095 收发时每 2s 读 DHT11 | **通过**：rx_ovf=0、tx drops=0 |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | **通过**：`10 01/03/04`、`3E 00`、`F180`、`F190`、配置 DID、100/100（2.034s）、S3 5s；首次卡顿已修复 |
-| UDS `0x19/0x14` | 5 类 DTC 可读/可清 | **真实 CAN 通过**：`19 02/0A/01`、C001=0x0D、C002=0x08、`14` 清除；置位/清除均掉电保存 |
-| Bootloader A/B | 两个分区都能启动 | 待实现 |
+| UDS `0x19/0x14` | 5 类 DTC 可读/可清 | **真实 CAN 通过**：`19 02/0A/01`、C001=0x0D、C002=0x08、`14` 清除；置位/清除掉电保存（sector 7 已验证，迁 sector 4 后待复测） |
+| Bootloader A/B | App A/B、trial、rollback、confirm | **通过**：A 启动、trial B、未确认回滚 A、确认 B 固定启动 |
 | OTA | 50 次成功，掉电可回滚 | 待实现 |
 | 24h 稳定性 | 丢帧 < 0.01%，P99 < 50 ms | 待实现 |
 | bus-off 恢复 | 3 s 内恢复 | 待实现 |
@@ -266,8 +266,8 @@ sudo /home/root/gw can0
 - [x] ISO-TP：BS/STmin、N_Bs/N_Cr、错序处理
 - [x] ISO-TP：STM32 `isotp_port` + 双机 4095 字节（已归档 `firmware/app`）
 - [x] UDS：`0x10 / 0x3E / 0x22`（会话/保活/读 DID/负响应/100 次通过）
-- [x] UDS：`0x19 / 0x14` + DTC（C001/C002/清除/Flash 持久化通过）
-- [ ] Bootloader：A/B、CRC32、跳转
+- [x] UDS：`0x19 / 0x14` + DTC（C001/C002/清除/Flash 持久化通过；DTC 已迁 sector 4，待复测）
+- [x] Bootloader：A/B、CRC、Metadata、跳转、trial/rollback/confirm 已实测通过
 - [ ] OTA：分片、ACK、断点续传、回滚
 - [ ] Linux 网关：诊断 CLI + OTA + SQLite + MQTT
 - [ ] 故障注入 + 24h/72h 测试

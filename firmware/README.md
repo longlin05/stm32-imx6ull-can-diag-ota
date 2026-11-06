@@ -17,6 +17,12 @@ firmware/
 │   ├── Docs
 │   ├── My_AI.ioc
 │   └── STM32F407VGTX_FLASH.ld
+├── bootloader/               # A/B Bootloader 核心（分区/CRC/Metadata/策略）
+│   ├── boot_crc32.c/h
+│   ├── boot_image.c/h
+│   ├── boot_meta.c/h
+│   ├── boot_policy.c/h
+│   └── test/
 ├── reference/
 │   └── AImate/               # 旧集成工程：协议、app_report、can.c、PIR/AHT20 驱动
 └── README.md
