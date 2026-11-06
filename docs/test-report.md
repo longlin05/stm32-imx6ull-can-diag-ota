@@ -87,10 +87,11 @@
 | A-BL-02 | trial B 启动 | active=A,trial=B,attempts=0 | 启动 B 一次 | **通过**：PC 0x0806xxxx | `test/records/20261106-boot-ab-trial.log` |
 | A-BL-03 | 未确认回滚 A | trial B 不确认，再复位 | 回滚 A | **通过**：PC 0x0802xxxx | `test/records/20261106-boot-ab-trial.log` |
 | A-BL-04 | 确认 B | App B 调 `Boot_AppConfirm(1)` | active=B，后续一直 B | **通过**：Metadata seq12 active=B；再次复位仍 B | `test/records/20261106-boot-ab-trial.log` |
-| A-OT-01 | A/B 启动 | 分别烧 A/B | 两个分区都能启动 | **通过（Bootloader 层）**；OTA 未实现 | `test/records/20261106-boot-ab-trial.log` |
-| A-OT-02 | 正常升级 | 10 次 | 10/10 成功 | 待执行 |  |
+| A-OT-00 | OTA 冒烟 | A→B、B→A、中断 | 双向通过，中断保持旧槽 | **通过**：0x34/0x36/0x37 双向；中断后仍 B | `test/records/20261106-ota-smoke.log` |
+| A-OT-01 | OTA 后 A/B 启动 | OTA 到 A/B 后复位 | 目标槽启动并确认 | **通过**：A/B 都被 trial 启动并 confirm | `test/records/20261106-ota-smoke.log` |
+| A-OT-02 | 正常升级 | 10 次 | 10/10 成功 | 未执行（当前只做冒烟） |  |
 | A-OT-03 | 50 次升级 | 循环 50 次 | 50/50 成功 | 待执行 |  |
-| A-OT-04 | 25% 掉电 | 传输到 25% 断电 | 回滚，旧版本可启动 | 待执行 |  |
+| A-OT-04 | OTA 中断 | 20KB/73KB 时 Ctrl-C | 旧槽仍可启动 | **通过**：复位仍 B | `test/records/20261106-ota-smoke.log` |
 | A-OT-05 | 50% 掉电 | 传输到 50% 断电 | 回滚，旧版本可启动 | 待执行 |  |
 | A-OT-06 | 75% 掉电 | 传输到 75% 断电 | 回滚，旧版本可启动 | 待执行 |  |
 | A-OT-07 | 断点续传 | 中断后重发 | 从上次 offset 继续 | 待执行 |  |
