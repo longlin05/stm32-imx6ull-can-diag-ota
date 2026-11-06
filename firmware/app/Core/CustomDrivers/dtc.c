@@ -5,11 +5,11 @@
 
 #include "main.h"
 
-/* 临时 Config 区：STM32F407 sector 7，128KB（0x08060000~0x0807FFFF）。
-   注意：0x08060000 对应的是 FLASH_SECTOR_7，不是 SECTOR_11。
+/* 临时 Config 区：STM32F407 sector 4，64KB（0x08010000~0x0801FFFF）。
+   Bootloader 分区后 App B 从 0x08060000 开始，DTC 必须放在 sector 4。
    当前应用只用到 0x080100A0，后面做 Bootloader 时会重新划分。 */
-#define DTC_STORE_ADDR      0x08060000UL
-#define DTC_STORE_SECTOR    FLASH_SECTOR_7
+#define DTC_STORE_ADDR      0x08010000UL
+#define DTC_STORE_SECTOR    FLASH_SECTOR_4
 #define DTC_STORE_MAGIC     0x44544331UL   /* "DTC1" */
 #define DTC_STORE_VERSION   1U
 

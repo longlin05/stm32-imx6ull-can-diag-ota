@@ -107,8 +107,9 @@ C005 Flash（占位）
 去抖：连续 3 次失败确认；连续 3 次通过清 testFailed/pending；
 confirmed 只有 `0x14` 能清。
 
-掉电保存：sector 7（`0x08060000`）存 DTC 数组 + magic/version/CRC32；
+掉电保存：sector 4（`0x08010000`）存 DTC 数组 + magic/version/CRC32；
 状态变化后 1s 写入，正常读不写 Flash。置位和清除均已做断电重启验证。
+Bootloader 分区后 App B 从 `0x08060000` 开始，DTC 已迁到 sector 4。
 
 ## 注意
 

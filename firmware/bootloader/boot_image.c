@@ -41,6 +41,36 @@ int boot_image_validate(const void *image, const boot_app_header_t *hdr)
     return 0;
 }
 
+int boot_image_validate_flash(const boot_flash_if_t *flash, uint32_t image_addr,
+                              const boot_app_header_t *hdr)
+{
+    uint8_t buf[256];
+    uint32_t remaining;
+    uint32_t offset = 0U;
+    uint32_t chunk;
+    uint32_t state = 0xFFFFFFFFUL;
+
+    if (flash == 0 || flash->read == 0 || hdr == 0 || hdr->length == 0U) {
+        return -1;
+    }
+
+    remaining = hdr->length;
+    while (remaining > 0U) {
+        chunk = (remaining > sizeof buf) ? (uint32_t)sizeof buf : remaining;
+        if (flash->read(flash->ctx, image_addr + offset, buf, chunk) != 0) {
+            return -2;
+        }
+        state = boot_crc32_update(state, buf, chunk);
+        offset += chunk;
+        remaining -= chunk;
+    }
+
+    if (boot_crc32_final(state) != hdr->crc32) {
+        return -3;
+    }
+    return 0;
+}
+
 int boot_vector_validate(const uint32_t *vectors, uint32_t image_base,
                          uint32_t image_len)
 {

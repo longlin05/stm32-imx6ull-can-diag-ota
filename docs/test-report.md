@@ -75,14 +75,14 @@
 | A-DT-03 | `0xC003` OTA CRC | 改固件 1 字节 | DTC 置位，不切换分区 | 占位，待 OTA |  |
 | A-DT-04 | `0xC004` 越界 | 遮挡/加热传感器 | DTC 置位 | 代码已接，待真实 CAN |  |
 | A-DT-05 | `0xC005` Flash | 擦除后写坏/校验失败 | DTC 置位 | 占位，待 Flash |  |
-| A-DT-06 | 掉电保存 | 置位后等 2s 断电重启；clear 后重启 | DTC 保留；clear 后为空 | **通过**：C001 重启后仍在；clear 后重启为空 | `test/records/20261106-dtc-real-can.log` |
+| A-DT-06 | 掉电保存 | 置位后等 2s 断电重启；clear 后重启 | DTC 保留；clear 后为空 | **旧 sector 7 通过**；已迁 sector 4，待复测 | `test/records/20261106-dtc-real-can.log` |
 | A-DT-07 | 清除 DTC | `14 FF FF FF` | 清后为空 | **通过**：`54`，随后 `19 02 FF` 为空 | `test/records/20261106-dtc-real-can.log` |
 
 ### 2.4 Bootloader / OTA
 
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
-| A-BL-00 | Bootloader 核心 | 主机运行 CRC/镜像/Metadata/策略测试 | 全部断言通过 | **通过**：`boot core tests: OK` | `test/records/20261106-boot-core-host.log` |
+| A-BL-00 | Bootloader 核心 | 主机运行 CRC/镜像/Metadata/策略/双记录测试 | 全部断言通过 | **通过**：`boot core tests: OK`、`boot meta store tests: OK` | `test/records/20261106-boot-core-host.log` |
 | A-OT-01 | A/B 启动 | 分别烧 A/B | 两个分区都能启动 | 待执行 |  |
 | A-OT-02 | 正常升级 | 10 次 | 10/10 成功 | 待执行 |  |
 | A-OT-03 | 50 次升级 | 循环 50 次 | 50/50 成功 | 待执行 |  |

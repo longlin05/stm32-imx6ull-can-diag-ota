@@ -18,5 +18,21 @@ boot core tests: OK
 - trial B 启动一次但未 confirm → 回滚 A；
 - confirm B 后固定启动 B；
 - A/B 都无效 → 返回 -1；
+
+Metadata 双记录：
+
+```text
+$ gcc -std=c99 -Wall -Wextra -I. -o test_boot_store.exe \
+    boot_crc32.c boot_meta.c boot_meta_store.c test/test_boot_store.c
+$ ./test_boot_store.exe
+boot meta store tests: OK
+```
+
+覆盖：
+
+- 第一次写 A；
+- 第二次写 B，A 保留；
+- 新记录损坏时从旧记录恢复；
+- seq 自动递增；
 - App Header magic/length/CRC；
 - 向量表 SP/Reset_Handler/Thumb 校验。

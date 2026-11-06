@@ -1,17 +1,23 @@
 CC      ?= gcc
 CFLAGS  ?= -std=c99 -Wall -Wextra -O2
-TARGET   = test_boot_core
-SRC      = boot_crc32.c boot_image.c boot_meta.c boot_policy.c test/test_boot_core.c
+CORE     = test_boot_core
+STORE    = test_boot_store
+CORE_SRC = boot_crc32.c boot_image.c boot_meta.c boot_policy.c test/test_boot_core.c
+STORE_SRC= boot_crc32.c boot_meta.c boot_meta_store.c test/test_boot_store.c
 
-all: $(TARGET)
+all: $(CORE) $(STORE)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -I. -o $@ $(SRC)
+$(CORE): $(CORE_SRC)
+	$(CC) $(CFLAGS) -I. -o $@ $(CORE_SRC)
 
-test: $(TARGET)
-	./$(TARGET)
+$(STORE): $(STORE_SRC)
+	$(CC) $(CFLAGS) -I. -o $@ $(STORE_SRC)
+
+test: all
+	./$(CORE)
+	./$(STORE)
 
 clean:
-	rm -f $(TARGET) $(TARGET).exe
+	rm -f $(CORE) $(STORE) $(CORE).exe $(STORE).exe
 
 .PHONY: all test clean
