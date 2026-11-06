@@ -83,7 +83,11 @@
 | ID | 测试项 | 步骤 | 通过标准 | 结果 | 日志 |
 |---|---|---|---|---|---|
 | A-BL-00 | Bootloader 核心 | 主机运行 CRC/镜像/Metadata/策略/双记录测试 | 全部断言通过 | **通过**：`boot core tests: OK`、`boot meta store tests: OK` | `test/records/20261106-boot-core-host.log` |
-| A-OT-01 | A/B 启动 | 分别烧 A/B | 两个分区都能启动 | 待执行 |  |
+| A-BL-01 | Bootloader → App A | 烧 Bootloader + app_a.img | App A 运行，UDS 正常 | **通过**：PC 0x0802xxxx，`50 03` | `test/records/20261106-boot-ab-trial.log` |
+| A-BL-02 | trial B 启动 | active=A,trial=B,attempts=0 | 启动 B 一次 | **通过**：PC 0x0806xxxx | `test/records/20261106-boot-ab-trial.log` |
+| A-BL-03 | 未确认回滚 A | trial B 不确认，再复位 | 回滚 A | **通过**：PC 0x0802xxxx | `test/records/20261106-boot-ab-trial.log` |
+| A-BL-04 | 确认 B | App B 调 `Boot_AppConfirm(1)` | active=B，后续一直 B | **通过**：Metadata seq12 active=B；再次复位仍 B | `test/records/20261106-boot-ab-trial.log` |
+| A-OT-01 | A/B 启动 | 分别烧 A/B | 两个分区都能启动 | **通过（Bootloader 层）**；OTA 未实现 | `test/records/20261106-boot-ab-trial.log` |
 | A-OT-02 | 正常升级 | 10 次 | 10/10 成功 | 待执行 |  |
 | A-OT-03 | 50 次升级 | 循环 50 次 | 50/50 成功 | 待执行 |  |
 | A-OT-04 | 25% 掉电 | 传输到 25% 断电 | 回滚，旧版本可启动 | 待执行 |  |

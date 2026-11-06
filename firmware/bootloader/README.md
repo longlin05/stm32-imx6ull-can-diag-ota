@@ -1,7 +1,6 @@
 # Bootloader
 
-A 项目的 STM32F407 Bootloader。核心逻辑、HAL Flash 适配、Metadata 双记录、镜像校验、跳转代码已写；
-还差 CubeIDE 工程和 App A/B 构建配置。
+A 项目的 STM32F407 Bootloader。A/B、CRC、Metadata、跳转、trial/rollback/confirm 已实测通过。
 
 具体建法见：[BUILD_CUBEIDE.md](BUILD_CUBEIDE.md)。
 
@@ -92,93 +91,21 @@ active 无效、另一槽有效   → 启动另一槽
 两个都无效                → 停在 Bootloader
 ```
 
-## 还没做
-
-- CubeIDE Bootloader 工程；
-- App 侧 `Boot_Confirm()` 和自检调用；
-- App A/B 实际构建、烧录与硬件测试。
-
-DTC 已从 `0x08060000` 迁到 `0x08010000`（sector 4）。
-
-## 接入 CubeIDE
-
-Bootloader 工程在 `main()` 里完成 HAL/时钟初始化后调用：
-
-```c
-#include "boot_loader.h"
-
-int main(void)
-{
-    HAL_Init();
-    SystemClock_Config();
-
-    if (Bootloader_Run() != 0) {
-        for (;;) {
-            /* 没有可启动 App：LED 慢闪 / 串口打印 */
-        }
-    }
-    for (;;) {
-    }
-}
-```
-
-链接：
+## 已验证
 
 ```text
-linker/bootloader.ld
+Bootloader → App A          通过
+trial B 第一次启动           通过
+未确认回滚 A                 通过
+Boot_AppConfirm(1)          通过
+确认后固定启动 B             通过
 ```
 
-App 自检通过后调用：
-
-```c
-Boot_AppConfirm(0);   /* App A */
-Boot_AppConfirm(1);   /* App B */
-```
-
-## 链接脚本
-
-```text
-linker/bootloader.ld   0x08000000, 32KB
-linker/app_a.ld        0x08020200, 0x3FE00
-linker/app_b.ld        0x08060200, 0x3FE00
-```
-
-App A 编译宏：
-
-```text
-VECT_TAB_OFFSET=0x20200
-```
-
-App B：
-
-```text
-VECT_TAB_OFFSET=0x60200
-```
-
-## 生成带 Header 的 App
-
-```bash
-python tools/mk_app_image.py app.bin app_with_header.bin --version 1
-```
-
-输出：
-
-```text
-0x000  header (512B)
-0x200  app.bin
-```
-
-烧录时从槽基地址开始：
-
-```text
-App A: 0x08020000
-App B: 0x08060000
-```
+App A/B 都链接在各自槽位，UDS 正常。
 
 ## 下一步
 
-1. 建 CubeIDE Bootloader 工程；
-2. 调 `Bootloader_Run()`；
-3. 用 `app_a.ld`/`app_b.ld` 编 A/B；
-4. 写 App 自检和 `Boot_Confirm()`；
-5. 硬件测试正常/CRC 坏/trial 回滚。
+1. OTA 传输：`0x34/0x36/0x37` 写非活动槽；
+2. 升级完成写 Metadata trial；
+3. 掉电/回滚测试；
+4. 50 次升级测试。
