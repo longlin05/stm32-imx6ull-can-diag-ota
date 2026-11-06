@@ -267,7 +267,7 @@ sudo /home/root/gw can0
 - [x] ISO-TP：STM32 `isotp_port` + 双机 4095 字节（已归档 `firmware/app`）
 - [x] UDS：`0x10 / 0x3E / 0x22`（会话/保活/读 DID/负响应/100 次通过）
 - [x] UDS：`0x19 / 0x14` + DTC（C001/C002/清除/Flash 持久化通过）
-- [ ] Bootloader：A/B、CRC32、跳转
+- [ ] Bootloader：核心分区/CRC/Metadata/策略已写（主机测试通过），HAL Flash/跳转/App A-B 链接下一步
 - [ ] OTA：分片、ACK、断点续传、回滚
 - [ ] Linux 网关：诊断 CLI + OTA + SQLite + MQTT
 - [ ] 故障注入 + 24h/72h 测试

@@ -1,0 +1,22 @@
+# 2026-11-06 Bootloader 核心主机测试
+
+未接 STM32，使用 gcc 编译 `firmware/bootloader` 核心逻辑。
+
+```text
+$ gcc -std=c99 -Wall -Wextra -I. -o test_boot_core.exe \
+    boot_crc32.c boot_image.c boot_meta.c boot_policy.c test/test_boot_core.c
+$ ./test_boot_core.exe
+boot core tests: OK
+```
+
+覆盖：
+
+- CRC32("123456789") = 0xCBF43926；
+- Metadata seq 选择与 CRC 坏数据；
+- active A 正常启动；
+- trial B 第一次启动；
+- trial B 启动一次但未 confirm → 回滚 A；
+- confirm B 后固定启动 B；
+- A/B 都无效 → 返回 -1；
+- App Header magic/length/CRC；
+- 向量表 SP/Reset_Handler/Thumb 校验。
