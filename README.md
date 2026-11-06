@@ -268,7 +268,7 @@ sudo /home/root/gw can0
 - [x] UDS：`0x10 / 0x3E / 0x22`（会话/保活/读 DID/负响应/100 次通过）
 - [x] UDS：`0x19 / 0x14` + DTC（C001/C002/清除/Flash 持久化通过；DTC 已迁 sector 4，待复测）
 - [x] Bootloader：A/B、CRC、Metadata、跳转、trial/rollback/confirm 已实测通过
-- [ ] OTA：分片、ACK、断点续传、回滚
+- [ ] OTA：`0x34/0x36/0x37` 写非活动槽（代码已写，待真实 OTA）
 - [ ] Linux 网关：诊断 CLI + OTA + SQLite + MQTT
 - [ ] 故障注入 + 24h/72h 测试
 - [ ] README、demo 视频、测试报告
