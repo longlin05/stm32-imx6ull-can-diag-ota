@@ -8,6 +8,7 @@
 /* Linux 侧 UDS Tester（最小实现：0x10 / 0x3E / 0x22） */
 typedef struct {
     int fd;
+    const char *ifname;
     isotp_ctx_t iso;
 } uds_client_t;
 

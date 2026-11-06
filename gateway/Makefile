@@ -6,6 +6,13 @@ CC      ?= gcc
 CFLAGS  ?= -Wall -Wextra -O2
 CFLAGS  += -Iinclude
 
+# SQLite 可选：有 pkg-config 且装了 sqlite3 才启用
+SQLITE_CFLAGS ?= $(shell pkg-config --cflags sqlite3 2>/dev/null)
+SQLITE_LIBS   ?= $(shell pkg-config --libs sqlite3 2>/dev/null)
+ifneq ($(strip $(SQLITE_LIBS)),)
+CFLAGS += -DGW_WITH_SQLITE $(SQLITE_CFLAGS)
+endif
+
 GW     = gw
 MOCK   = mock_ecu
 SELF   = selftest
@@ -15,7 +22,7 @@ UDS    = uds_cli
 GW_OBJ   = src/main.o src/isotp.o src/can.o
 MOCK_OBJ = test/mock_ecu.o src/isotp.o src/can.o
 SELF_OBJ = test/selftest.o src/isotp.o
-UDS_OBJ  = src/uds_cli.o src/uds_client.o src/isotp.o src/can.o
+UDS_OBJ  = src/uds_cli.o src/uds_client.o src/gw_log.o src/isotp.o src/can.o
 
 all: $(GW) $(MOCK) $(SELF) $(UDS)
 
@@ -29,7 +36,7 @@ $(SELF): $(SELF_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(SELF_OBJ)
 
 $(UDS): $(UDS_OBJ)
-	$(CC) $(CFLAGS) -o $@ $(UDS_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(UDS_OBJ) $(SQLITE_LIBS)
 
 test: $(SELF)
 	./$(SELF)

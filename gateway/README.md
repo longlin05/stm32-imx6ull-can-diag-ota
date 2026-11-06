@@ -12,7 +12,9 @@
 - ✅ vcan 自测对端（[test/mock_ecu.c](test/mock_ecu.c)）。
 - ✅ 免 root 进程内自测（[test/selftest.c](test/selftest.c)）。
 - ✅ UDS Client（[src/uds_client.c](src/uds_client.c)）+ CLI（[src/uds_cli.c](src/uds_cli.c)）：0x10 / 0x3E / 0x22。
-- ⬜ STM32 UDS Server 联调、DTC、FOTA。
+- ✅ UDS / DTC / OTA 已联调（详见项目根 README）。
+- 🟡 SQLite 事件日志（可选编译，`GW_DB` 指定数据库）。
+- ⬜ MQTT / 常驻网关。
 
 ## 构建
 
@@ -55,6 +57,28 @@ ip -details link show can0
 
 `read-dtc` 发 `19 02 FF`；`read-dtc-supported` 发 `19 0A`；
 `read-dtc-count` 发 `19 01 FF`；`clear-dtc` 发 `14 FF FF FF`。
+
+## SQLite 日志
+
+需要 sqlite3 开发库：
+
+```bash
+sudo apt install libsqlite3-dev
+make clean && make
+```
+
+如果 `pkg-config` 能识别 sqlite3，Makefile 会自动加 `-DGW_WITH_SQLITE` 和 `-lsqlite3`。
+
+运行：
+
+```bash
+GW_DB=/root/my_ai/gateway.db ./uds_cli can0 read-dtc
+sqlite3 /root/my_ai/gateway.db   "select ts,req_hex,resp_hex,status from uds_events order by id desc limit 10;"
+```
+
+没有 SQLite 时仍然可以编译运行，只是 `gw_log_*` 是空操作。
+
+0x36 的每个块不记日志，只记 0x34/0x37 和普通诊断请求，避免 OTA 时数据库爆炸。
 
 ## vcan 自测
 

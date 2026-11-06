@@ -6,6 +6,7 @@
 #include "can.h"
 #include "isotp.h"
 #include "uds.h"
+#include "gw_log.h"
 
 static int g_uds_fd = -1;
 
@@ -25,6 +26,7 @@ int uds_client_init(uds_client_t *c, const char *ifname,
     c->fd = can_open(ifname);
     if (c->fd < 0)
         return -1;
+    c->ifname = ifname;
 
     can_set_nonblock(c->fd);
     can_enable_error_frames(c->fd);
@@ -51,8 +53,10 @@ int uds_request(uds_client_t *c,
     /* 丢掉上一条的残留响应，避免串包 */
     isotp_reset_rx(&c->iso);
 
-    if (isotp_send(&c->iso, req, req_len) != 0)
+    if (isotp_send(&c->iso, req, req_len) != 0) {
+        gw_log_uds(c->ifname, req, req_len, NULL, 0, "send-fail");
         return -1;
+    }
 
     deadline = can_now_ms() + (uint32_t)timeout_ms;
 
@@ -80,11 +84,15 @@ int uds_request(uds_client_t *c,
             if (resp_len != NULL)
                 *resp_len = n;
             isotp_reset_rx(&c->iso);
+            gw_log_uds(c->ifname, req, req_len, resp, n,
+                       (n >= 3 && resp[0] == 0x7F) ? "nrc" : "ok");
             return 0;
         }
 
-        if ((int32_t)(can_now_ms() - deadline) >= 0)
+        if ((int32_t)(can_now_ms() - deadline) >= 0) {
+            gw_log_uds(c->ifname, req, req_len, NULL, 0, "timeout");
             return -1;
+        }
     }
 }
 
