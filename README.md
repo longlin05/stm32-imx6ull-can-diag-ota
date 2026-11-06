@@ -301,11 +301,11 @@ CSDN：`blog.csdn.net/longlin101`
 4. [03 ISO-TP：从 0 到 4095 字节，以及 30% 丢帧是怎么修掉的](https://blog.csdn.net/longlin101/article/details/170053591)
 5. [04 UDS 最小闭环：0x10/0x3E/0x22，会话、S3 与读 VIN](https://blog.csdn.net/longlin101/article/details/170145581)
 6. [05 UDS DTC：0x19/0x14，从故障检测到 Flash 掉电保存](https://blog.csdn.net/longlin101/article/details/170192523)
+7. [06 CAN Bootloader：A/B 分区、CRC32、跳转与回滚](https://blog.csdn.net/longlin101/article/details/170201376)
 
 计划：
 
-7. 06 CAN Bootloader：A/B 分区、CRC32、跳转、回滚
-8. 07 OTA 实战：50 次升级与掉电测试
+8. 07 OTA 实战：A↔B 升级、掉电与回滚
 9. 08 Linux 网关：SocketCAN + 诊断 CLI + SQLite
 10. 09 i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备
 11. 10 测试报告：24h/72h、P99、bus-off 数据
