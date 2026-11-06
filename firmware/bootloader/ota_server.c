@@ -121,7 +121,7 @@ static uint16_t ota_transfer(const uint8_t *req, uint16_t len,
     if (s_ota.active_flag == 0U) {
         return ota_nrc(resp, cap, req[0], 0x22U);
     }
-    if (len < 2U) {
+    if (len < 3U) {
         return ota_nrc(resp, cap, req[0], 0x13U);
     }
 
@@ -130,7 +130,7 @@ static uint16_t ota_transfer(const uint8_t *req, uint16_t len,
         return ota_nrc(resp, cap, req[0], 0x73U);
     }
 
-    data_len = (uint16_t)(len - 1U);
+    data_len = (uint16_t)(len - 2U);
     if ((data_len == 0U) || ((data_len & 3U) != 0U) ||
         ((s_ota.written + data_len) > s_ota.size)) {
         return ota_nrc(resp, cap, req[0], 0x13U);
