@@ -71,7 +71,7 @@
 |---|---|---|---|---|---|
 | A-DT-00 | DTC 协议层 | 主机桩调用 `19 02/0A/01`、`14` | 响应格式正确 | **主机自测通过**：空表、置位 C001 0x0D、清除 | `test/records/20261105-dtc-host.log` |
 | A-DT-01 | `0xC001` DHT11 超时/校验错 | 拔 DATA/短接 DATA/人为改坏校验和 | DTC 置位，可读 | **真实 CAN 通过**：拔 DATA 后 C001=0x0D | `test/records/20261106-dtc-real-can.log` |
-| A-DT-02 | `0xC002` bus-off | 拔 CANH/短接 | DTC 置位，恢复后仍可读 | **部分通过**：启动前已有 C002=0x08（历史 bus-off），未做主动注入 | `test/records/20261106-dtc-real-can.log` |
+| A-DT-02 | `0xC002` bus-off | `can0 down/up` 使 STM32 失去 ACK | DTC 置位，恢复后仍可读 | **真实 CAN 通过**：C002=0x08；`ESR.BOFF=1`；`14` 后清空 | `test/records/20261106-dtc-real-can.log` |
 | A-DT-03 | `0xC003` OTA CRC | 改固件 1 字节 | DTC 置位，不切换分区 | 占位，待 OTA |  |
 | A-DT-04 | `0xC004` 越界 | 遮挡/加热传感器 | DTC 置位 | 代码已接，待真实 CAN |  |
 | A-DT-05 | `0xC005` Flash | 擦除后写坏/校验失败 | DTC 置位 | 占位，待 Flash |  |

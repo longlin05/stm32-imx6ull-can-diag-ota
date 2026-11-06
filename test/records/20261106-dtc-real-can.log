@@ -58,6 +58,36 @@ RX: 59 01 FF 00 00
 
 清除成功。
 
+## C002 bus-off
+
+先清空，再 `can0 down` / `up`，让 STM32 失去 ACK：
+
+```text
+./uds_cli can0 clear-dtc
+sudo ip link set can0 down
+sudo ip link set can0 up type can bitrate 500000 restart-ms 100
+
+./uds_cli can0 read-dtc
+RX: 59 02 FF C0 02 08
+DTC C002 status=0x08
+
+./uds_cli can0 clear-dtc
+RX: 54
+
+./uds_cli can0 read-dtc
+RX: 59 02 FF
+```
+
+STM32 当时的现场：
+
+```text
+CAN tx: no free mailbox state=2 err=0x00000000
+ESR=0x4D000055 TSR=0x82000008 MCR=0x00010040 MSR=0x00000C08
+```
+
+`ESR=0x4D000055` 的 `BOFF` 位为 1，DTC 捕获到了 bus-off；
+恢复后 `testFailed/pending` 清掉，保留 confirmed `0x08`，`0x14` 清除成功。
+
 ## 备注
 
 - 输出里的 `DTC CC001` 是 CLI 打印格式多了一个 C，协议本身是 `C0 01`；
