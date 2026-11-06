@@ -12,7 +12,10 @@ void boot_jump_to(uint32_t app_base)
 
     __disable_irq();
     SCB->VTOR = app_base;
+    __DSB();
+    __ISB();
     __set_MSP(sp);
+    __enable_irq();
     entry();
 
     for (;;) {
