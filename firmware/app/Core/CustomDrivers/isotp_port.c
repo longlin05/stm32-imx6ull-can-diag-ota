@@ -735,7 +735,7 @@ void IsoTpPort_Task(void *argument)
 
     /* 3.1 CAN bus-off 立即置位 C002；恢复后清 testFailed，confirmed 留给 0x14 */
     Dtc_ReportImmediate(DTC_CODE_CAN_BUSOFF,
-                        (HAL_CAN_GetState(&hcan1) == HAL_CAN_STATE_BUS_OFF)
+                        ((hcan1.Instance->ESR & CAN_ESR_BOFF) != 0U)
                         ? 1U : 0U);
 
     /* 4. 完整消息到了就交给 UDS Server；发送忙就留到下个 tick。

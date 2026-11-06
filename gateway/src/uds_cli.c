@@ -30,9 +30,10 @@ static int parse_u16_hex(const char *s, uint16_t *out)
 static void print_dtc_records(const uint8_t *records, uint16_t len)
 {
     uint16_t i;
+    uint16_t code;
 
     for (i = 0; (uint16_t)(i + 3U) <= len; i += 3U) {
-        uint16_t code = (uint16_t)(((uint16_t)records[i] << 8) | records[i + 1U]);
+        code = (uint16_t)(((uint16_t)records[i] << 8) | records[i + 1U]);
         printf("DTC C%03X status=0x%02X\n", code, records[i + 2U]);
     }
 }
