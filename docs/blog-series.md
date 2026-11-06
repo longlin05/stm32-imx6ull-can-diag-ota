@@ -32,7 +32,7 @@
 | 03 | ISO-TP 多帧：4095 字节、BS/STmin、DHT11 并发与异常注入 | `a-v0.4-isotp-stm32` | 已发布 | https://blog.csdn.net/longlin101/article/details/170053591 |
 | 04 | UDS 最小闭环：`0x10/0x3E/0x22`，会话、S3 与读 VIN | `a-v0.5-uds` | 已发布 | https://blog.csdn.net/longlin101/article/details/170145581 |
 | 05 | DTC：`0x19/0x14`，5 类故障检测、存储与清除 | `a-v0.6-dtc` | 已发布 | https://blog.csdn.net/longlin101/article/details/170192523 |
-| 06 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.7-boot` | 待写 |  |
+| 06 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.7-boot` | 本地稿完成，待发布 | [`docs/blog/06-bootloader.md`](blog/06-bootloader.md) |
 | 07 | OTA 实战：50 次升级与 3 个掉电点 | `a-v1.0` | 待写 |  |
 | 08 | Linux 网关：SocketCAN + 诊断 CLI + SQLite | `a-v1.0` | 待写 |  |
 | 09 | i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备 | `b-v0.1` | 待写 |  |
