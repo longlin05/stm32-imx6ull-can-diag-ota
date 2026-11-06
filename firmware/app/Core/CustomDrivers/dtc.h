@@ -33,8 +33,11 @@ extern "C" {
 
 #define DTC_COUNT                5U
 
-/** 初始化 DTC 表（RAM，默认全部正常） */
+/** 初始化 DTC 表；从 Config Flash 恢复，无效则用默认值 */
 void Dtc_Init(void);
+
+/** 1ms/周期任务调用：状态变化后延迟写入 Flash */
+void Dtc_Task(uint32_t now_ms);
 
 /**
   * @brief  上报一次检测结果（带去抖）

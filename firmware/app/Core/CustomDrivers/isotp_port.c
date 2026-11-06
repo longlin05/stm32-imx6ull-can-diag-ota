@@ -738,6 +738,9 @@ void IsoTpPort_Task(void *argument)
                         ((hcan1.Instance->ESR & CAN_ESR_BOFF) != 0U)
                         ? 1U : 0U);
 
+    /* 状态变化后延迟 1s 写 Config Flash；正常时只读标志，几乎无开销 */
+    Dtc_Task(HAL_GetTick());
+
     /* 4. 完整消息到了就交给 UDS Server；发送忙就留到下个 tick。
           s_uds_resp_buf 的复用由核心的 tx_state 把关，发完之前 isotp_send 会拒绝 */
     isotp_uds_if_ready();

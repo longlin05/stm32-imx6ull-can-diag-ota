@@ -247,7 +247,7 @@ sudo /home/root/gw can0
 | ISO-TP 异常 | 丢 CF / 错序 / N_Bs / N_Cr | **真实 CAN 通过**：drop-fc / mangle-cf / drop-last-cf；selftest 9 用例 |
 | DHT11 并发 | 4095 收发时每 2s 读 DHT11 | **通过**：rx_ovf=0、tx drops=0 |
 | UDS `0x10/0x3E/0x22` | 响应 < 50 ms | **通过**：`10 01/03/04`、`3E 00`、`F180`、`F190`、配置 DID、100/100（2.034s）、S3 5s；首次卡顿已修复 |
-| UDS `0x19/0x14` | 5 类 DTC 可读/可清 | **真实 CAN 通过**：`19 02/0A/01`、C001=0x0D、C002=0x08、`14` 清除；掉电保存待 Flash |
+| UDS `0x19/0x14` | 5 类 DTC 可读/可清 | **真实 CAN 通过**：`19 02/0A/01`、C001=0x0D、C002=0x08、`14` 清除；Flash 持久化代码已接，待掉电验证 |
 | Bootloader A/B | 两个分区都能启动 | 待实现 |
 | OTA | 50 次成功，掉电可回滚 | 待实现 |
 | 24h 稳定性 | 丢帧 < 0.01%，P99 < 50 ms | 待实现 |
@@ -266,7 +266,7 @@ sudo /home/root/gw can0
 - [x] ISO-TP：BS/STmin、N_Bs/N_Cr、错序处理
 - [x] ISO-TP：STM32 `isotp_port` + 双机 4095 字节（已归档 `firmware/app`）
 - [x] UDS：`0x10 / 0x3E / 0x22`（会话/保活/读 DID/负响应/100 次通过）
-- [ ] UDS：`0x19 / 0x14` + DTC（C001/C002/清除已通过；Flash 持久化待做）
+- [ ] UDS：`0x19 / 0x14` + DTC（C001/C002/清除已通过；Flash 持久化待掉电验证）
 - [ ] Bootloader：A/B、CRC32、跳转
 - [ ] OTA：分片、ACK、断点续传、回滚
 - [ ] Linux 网关：诊断 CLI + OTA + SQLite + MQTT
