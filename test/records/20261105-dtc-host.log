@@ -1,0 +1,46 @@
+# 2026-11-05 DTC 协议层主机自测
+
+未接 STM32，使用 `dtc.c` + `uds_server.c` 的主机桩编译，验证 UDS 响应格式。
+
+## 输出
+
+```text
+TX 19 02 FF
+RX 59 02 FF
+
+TX 19 0A
+RX 59 0A FF C0 01 00 C0 02 00 C0 03 00 C0 04 00 C0 05 00
+
+TX 19 01 FF
+RX 59 01 FF 00 00
+
+# 连续 3 次 Dtc_Report(DTC_CODE_DHT11, 1)
+TX 19 02 FF
+RX 59 02 FF C0 01 0D
+
+TX 19 01 FF
+RX 59 01 FF 00 01
+
+TX 14 FF FF FF
+RX 54
+
+TX 19 02 FF
+RX 59 02 FF
+
+TX 19 01 FF
+RX 59 01 FF 00 00
+```
+
+## 结论
+
+- 空表：`19 02 FF` 只返回 availability mask；
+- `19 0A` 返回 5 个支持的 DTC（18 字节，真实 CAN 会走 FF+CF）；
+- `19 01 FF` 返回数量；
+- 连续 3 次失败：C001 状态 `0x0D`（testFailed + pending + confirmed）；
+- `14 FF FF FF` 清除后重新为空。
+
+## 未覆盖
+
+- 真实 CAN 上的 DHT11 故障注入；
+- bus-off C002；
+- 掉电保存（当前 RAM 版）。

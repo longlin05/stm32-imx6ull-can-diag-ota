@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "app_report.h"
+#include "dtc.h"
 #include "main.h"
 
 /* 第一版 VIN 是占位值，长度必须 17 字节；量产由产线写入 */
@@ -187,6 +188,98 @@ static uint16_t uds_tester_present(const uint8_t *req, uint16_t len,
   return 2U;
 }
 
+static uint16_t uds_read_dtc(const uint8_t *req, uint16_t len,
+                             uint8_t *resp, uint16_t cap)
+{
+  uint8_t  sub;
+  uint16_t n;
+  uint16_t count;
+
+  if (len < 2U)
+  {
+    return uds_negative(resp, cap, req[0], UDS_NRC_INCORRECT_LENGTH);
+  }
+
+  sub = req[1];
+
+  switch (sub)
+  {
+    case 0x01U:   /* reportNumberOfDTCByStatusMask */
+      if (len != 3U)
+      {
+        return uds_negative(resp, cap, req[0], UDS_NRC_INCORRECT_LENGTH);
+      }
+      if (cap < 5U)
+      {
+        return 0U;
+      }
+      count = Dtc_CountByMask(req[2]);
+      resp[0] = 0x59U;
+      resp[1] = 0x01U;
+      resp[2] = req[2];
+      resp[3] = (uint8_t)(count >> 8);
+      resp[4] = (uint8_t)(count & 0xFFU);
+      return 5U;
+
+    case 0x02U:   /* reportDTCByStatusMask */
+      if (len != 3U)
+      {
+        return uds_negative(resp, cap, req[0], UDS_NRC_INCORRECT_LENGTH);
+      }
+      if (cap < 3U)
+      {
+        return 0U;
+      }
+      resp[0] = 0x59U;
+      resp[1] = 0x02U;
+      resp[2] = DTC_STATUS_MASK_ALL;
+      n = Dtc_ReadByMask(req[2], &resp[3], (uint16_t)(cap - 3U));
+      return (uint16_t)(3U + n);
+
+    case 0x0AU:   /* reportSupportedDTC */
+      if (len != 2U)
+      {
+        return uds_negative(resp, cap, req[0], UDS_NRC_INCORRECT_LENGTH);
+      }
+      if (cap < 3U)
+      {
+        return 0U;
+      }
+      resp[0] = 0x59U;
+      resp[1] = 0x0AU;
+      resp[2] = DTC_STATUS_MASK_ALL;
+      n = Dtc_ReadSupported(&resp[3], (uint16_t)(cap - 3U));
+      return (uint16_t)(3U + n);
+
+    default:
+      return uds_negative(resp, cap, req[0], UDS_NRC_SUBFUNC_NOT_SUPPORTED);
+  }
+}
+
+static uint16_t uds_clear_dtc(const uint8_t *req, uint16_t len,
+                              uint8_t *resp, uint16_t cap)
+{
+  if (len != 4U)
+  {
+    return uds_negative(resp, cap, req[0], UDS_NRC_INCORRECT_LENGTH);
+  }
+
+  /* 第一版只支持 groupOfDTC = FF FF FF（全部） */
+  if ((req[1] != 0xFFU) || (req[2] != 0xFFU) || (req[3] != 0xFFU))
+  {
+    return uds_negative(resp, cap, req[0], UDS_NRC_REQUEST_OUT_OF_RANGE);
+  }
+
+  Dtc_ClearAll();
+
+  if (cap < 1U)
+  {
+    return 0U;
+  }
+  resp[0] = 0x54U;
+  return 1U;
+}
+
 void UdsServer_Init(void)
 {
   s_session = UDS_SESSION_DEFAULT;
@@ -229,6 +322,12 @@ uint16_t UdsServer_Handle(const uint8_t *req, uint16_t req_len,
       }
       return uds_read_did((uint16_t)(((uint16_t)req[1] << 8) | req[2]),
                           resp, resp_cap);
+
+    case UDS_SID_READ_DTC:
+      return uds_read_dtc(req, req_len, resp, resp_cap);
+
+    case UDS_SID_CLEAR_DTC:
+      return uds_clear_dtc(req, req_len, resp, resp_cap);
 
     default:
       return uds_negative(resp, resp_cap, req[0],

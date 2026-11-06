@@ -46,8 +46,8 @@ https://github.com/longlin05/DHT11-AHT20-RIR-Freertos
 1. CAN baseline：错误帧统计、bus-off 恢复、`FW_VERSION`；
 2. ✅ Linux → STM32 命令/ACK（`0x221/0x222/0x228`）：1000/1000，P99 22ms；
 3. ✅ ISO-TP：SF/FF/CF/FC、BS/STmin、4095 字节、真实 CAN + DHT11 并发；
-4. 🟡 UDS `0x10/0x3E/0x22`：代码已写，待上板联调；
-5. UDS `0x19/0x14` + DTC；
+4. ✅ UDS `0x10/0x3E/0x22`：真实 CAN 通过；
+5. ✅ UDS `0x19/0x14` + DTC：C001/C002/清除 + Flash 掉电保存通过；
 6. OTA Client（写非活动分区）。
 
 ## 约定

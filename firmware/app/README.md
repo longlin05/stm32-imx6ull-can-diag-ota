@@ -87,7 +87,30 @@ F182 CALIB     F1A0 PIR F1A1 ENV_PERIOD  F1A2 HB_PERIOD
 
 S3 会话超时 5s；不支持的服务返回 `7F SID 11`。
 
+## DTC
+
+```text
+0x19 01/02/0A   读 DTC 数量/按状态/支持列表
+0x14 FF FF FF   清 DTC
+```
+
+5 个 DTC：
+
+```text
+C001 DHT11 超时/校验
+C002 CAN bus-off
+C003 OTA CRC（占位）
+C004 温湿度越界
+C005 Flash（占位）
+```
+
+去抖：连续 3 次失败确认；连续 3 次通过清 testFailed/pending；
+confirmed 只有 `0x14` 能清。
+
+掉电保存：sector 7（`0x08060000`）存 DTC 数组 + magic/version/CRC32；
+状态变化后 1s 写入，正常读不写 Flash。置位和清除均已做断电重启验证。
+
 ## 注意
 
 - `isotp.c/h` 是 STM32 实测 ISO-TP 快照；`gateway/src/isotp.c` 后续又加了 DLC/发送失败防护，两边需要再同步一次并重跑 4095。
-- UDS 服务端代码已写好，但还需要上板联调；测试通过前不要标记为已验证。
+- DTC 基础（C001/C002/清除）已真实 CAN 通过；Flash 持久化刚接入，待验证。

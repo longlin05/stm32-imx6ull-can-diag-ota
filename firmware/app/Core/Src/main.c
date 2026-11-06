@@ -37,6 +37,7 @@
 #include "app_report.h"
 #include "app_cmd.h"
 #include "isotp_port.h"
+#include "dtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -361,6 +362,21 @@ static void DisplayTask(void *argument)
         th_ok        = 1U;
         th_ever      = 1U;
         last_ok_tick = now;
+
+        Dtc_Report(DTC_CODE_DHT11, 0U);
+
+        if ((th.temp_int > 50U) || (th.humi_int > 90U))
+        {
+          Dtc_Report(DTC_CODE_ENV_RANGE, 1U);
+        }
+        else
+        {
+          Dtc_Report(DTC_CODE_ENV_RANGE, 0U);
+        }
+      }
+      else
+      {
+        Dtc_Report(DTC_CODE_DHT11, 1U);
       }
     }
 

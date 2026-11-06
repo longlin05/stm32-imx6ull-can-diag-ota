@@ -27,14 +27,29 @@ static int parse_u16_hex(const char *s, uint16_t *out)
     return 0;
 }
 
+static void print_dtc_records(const uint8_t *records, uint16_t len)
+{
+    uint16_t i;
+    uint16_t code;
+
+    for (i = 0; (uint16_t)(i + 3U) <= len; i += 3U) {
+        code = (uint16_t)(((uint16_t)records[i] << 8) | records[i + 1U]);
+        printf("DTC %04X status=0x%02X\n", code, records[i + 2U]);
+    }
+}
+
 static void usage(const char *prog)
 {
     fprintf(stderr,
             "usage:\n"
             "  %s <ifname> session <01|02|03>\n"
             "  %s <ifname> tester-present\n"
-            "  %s <ifname> read-did <F190|F180|F1A0|...>\n",
-            prog, prog, prog);
+            "  %s <ifname> read-did <F190|F180|F1A0|...>\n"
+            "  %s <ifname> read-dtc\n"
+            "  %s <ifname> read-dtc-supported\n"
+            "  %s <ifname> read-dtc-count\n"
+            "  %s <ifname> clear-dtc\n",
+            prog, prog, prog, prog, prog, prog, prog);
 }
 
 int main(int argc, char **argv)
@@ -49,6 +64,8 @@ int main(int argc, char **argv)
     uint16_t i;
     uds_client_t client;
     int is_read_did = 0;
+    int dtc_mode = 0;          /* 1=count, 2=mask, 10=supported */
+    int clear_dtc = 0;
     int rc;
 
     if (argc < 3) {
@@ -81,6 +98,30 @@ int main(int argc, char **argv)
         req[2] = (uint8_t)(did & 0xFFU);
         req_len = 3;
         is_read_did = 1;
+    } else if (strcmp(cmd, "read-dtc") == 0) {
+        req[0] = 0x19;
+        req[1] = 0x02;
+        req[2] = 0xFF;
+        req_len = 3;
+        dtc_mode = 2;
+    } else if (strcmp(cmd, "read-dtc-supported") == 0) {
+        req[0] = 0x19;
+        req[1] = 0x0A;
+        req_len = 2;
+        dtc_mode = 10;
+    } else if (strcmp(cmd, "read-dtc-count") == 0) {
+        req[0] = 0x19;
+        req[1] = 0x01;
+        req[2] = 0xFF;
+        req_len = 3;
+        dtc_mode = 1;
+    } else if (strcmp(cmd, "clear-dtc") == 0) {
+        req[0] = 0x14;
+        req[1] = 0xFF;
+        req[2] = 0xFF;
+        req[3] = 0xFF;
+        req_len = 4;
+        clear_dtc = 1;
     } else {
         usage(argv[0]);
         return 1;
@@ -126,6 +167,26 @@ int main(int argc, char **argv)
         } else {
             printf("{\"cmd\":\"read-did\",\"status\":\"bad-response\"}\n");
         }
+    } else if (dtc_mode != 0) {
+        if (dtc_mode == 1) {
+            if ((resp_len >= 5) && (resp[0] == 0x59) && (resp[1] == 0x01)) {
+                uint16_t count = (uint16_t)(((uint16_t)resp[3] << 8) | resp[4]);
+                printf("{\"cmd\":\"read-dtc-count\",\"status\":\"ok\",\"count\":%u}\n",
+                       (unsigned)count);
+            } else {
+                printf("{\"cmd\":\"read-dtc-count\",\"status\":\"bad-response\"}\n");
+            }
+        } else if ((resp_len >= 3) && (resp[0] == 0x59) &&
+                   (resp[1] == (uint8_t)dtc_mode)) {
+            printf("{\"cmd\":\"%s\",\"status\":\"ok\",\"availability\":\"0x%02X\",\"count\":%u}\n",
+                   cmd, resp[2], (unsigned)((resp_len - 3U) / 3U));
+            print_dtc_records(&resp[3], (uint16_t)(resp_len - 3U));
+        } else {
+            printf("{\"cmd\":\"%s\",\"status\":\"bad-response\"}\n", cmd);
+        }
+    } else if (clear_dtc) {
+        printf("{\"cmd\":\"clear-dtc\",\"status\":\"%s\"}\n",
+               (resp_len >= 1 && resp[0] == 0x54) ? "ok" : "bad-response");
     } else if (strcmp(cmd, "session") == 0) {
         printf("{\"cmd\":\"session\",\"status\":\"%s\"}\n",
                (resp_len >= 2 && resp[0] == 0x50) ? "ok" : "bad-response");

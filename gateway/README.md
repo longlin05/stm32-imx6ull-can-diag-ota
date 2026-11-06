@@ -40,9 +40,17 @@ ip -details link show can0
 ./uds_cli can0 tester-present
 ./uds_cli can0 read-did F190
 ./uds_cli can0 read-did F180
+
+./uds_cli can0 read-dtc
+./uds_cli can0 read-dtc-supported
+./uds_cli can0 read-dtc-count
+./uds_cli can0 clear-dtc
 ```
 
 `F190` 返回 17 字节 VIN，会走 ISO-TP 多帧，正好验证 FF/CF。
+
+`read-dtc` 发 `19 02 FF`；`read-dtc-supported` 发 `19 0A`；
+`read-dtc-count` 发 `19 01 FF`；`clear-dtc` 发 `14 FF FF FF`。
 
 ## vcan 自测
 
