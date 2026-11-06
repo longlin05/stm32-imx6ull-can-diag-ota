@@ -75,7 +75,7 @@
 | A-DT-03 | `0xC003` OTA CRC | 改固件 1 字节 | DTC 置位，不切换分区 | 占位，待 OTA |  |
 | A-DT-04 | `0xC004` 越界 | 遮挡/加热传感器 | DTC 置位 | 代码已接，待真实 CAN |  |
 | A-DT-05 | `0xC005` Flash | 擦除后写坏/校验失败 | DTC 置位 | 占位，待 Flash |  |
-| A-DT-06 | 掉电保存 | 置位后等 2s，再断电重启 | DTC 仍存在 | Flash 代码已接（sector 11），待验证 |  |
+| A-DT-06 | 掉电保存 | 置位后等 2s，再断电重启 | DTC 仍存在 | Flash 代码已接（sector 7），待验证 |  |
 | A-DT-07 | 清除 DTC | `14 FF FF FF` | 清后为空 | **通过**：`54`，随后 `19 02 FF` 为空 | `test/records/20261106-dtc-real-can.log` |
 
 ### 2.4 Bootloader / OTA

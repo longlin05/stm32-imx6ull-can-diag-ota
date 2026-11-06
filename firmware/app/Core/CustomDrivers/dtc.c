@@ -1,12 +1,15 @@
 #include "dtc.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "main.h"
 
-/* 临时 Config 区：STM32F407 sector 11，128KB。
+/* 临时 Config 区：STM32F407 sector 7，128KB（0x08060000~0x0807FFFF）。
+   注意：0x08060000 对应的是 FLASH_SECTOR_7，不是 SECTOR_11。
    当前应用只用到 0x080100A0，后面做 Bootloader 时会重新划分。 */
 #define DTC_STORE_ADDR      0x08060000UL
+#define DTC_STORE_SECTOR    FLASH_SECTOR_7
 #define DTC_STORE_MAGIC     0x44544331UL   /* "DTC1" */
 #define DTC_STORE_VERSION   1U
 
@@ -128,17 +131,20 @@ static void dtc_store_save(void)
 
   if (HAL_FLASH_Unlock() != HAL_OK)
   {
+    printf("DTC flash: unlock failed\r\n");
     return;
   }
 
   memset(&erase, 0, sizeof erase);
   erase.TypeErase    = FLASH_TYPEERASE_SECTORS;
-  erase.Sector       = FLASH_SECTOR_11;
+  erase.Sector       = DTC_STORE_SECTOR;
   erase.NbSectors    = 1U;
   erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
 
   if (HAL_FLASHEx_Erase(&erase, &sector_error) != HAL_OK)
   {
+    printf("DTC flash: erase sector %u failed, err=%lu\r\n",
+           (unsigned)DTC_STORE_SECTOR, (unsigned long)sector_error);
     (void)HAL_FLASH_Lock();
     return;
   }
@@ -160,6 +166,11 @@ static void dtc_store_save(void)
   if (st == HAL_OK)
   {
     s_store_dirty = 0U;
+  }
+  else
+  {
+    printf("DTC flash: program failed at 0x%08lX\r\n",
+           (unsigned long)(DTC_STORE_ADDR + (i * 4U)));
   }
 }
 
