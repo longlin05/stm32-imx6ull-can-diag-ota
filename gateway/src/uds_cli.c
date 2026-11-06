@@ -34,7 +34,7 @@ static void print_dtc_records(const uint8_t *records, uint16_t len)
 
     for (i = 0; (uint16_t)(i + 3U) <= len; i += 3U) {
         code = (uint16_t)(((uint16_t)records[i] << 8) | records[i + 1U]);
-        printf("DTC C%03X status=0x%02X\n", code, records[i + 2U]);
+        printf("DTC %04X status=0x%02X\n", code, records[i + 2U]);
     }
 }
 

@@ -1,0 +1,66 @@
+# 2026-11-06 DTC 真实 CAN 测试
+
+平台：STM32F407 + i.MX6ULL，CAN 500 kbps。
+
+## 初始读
+
+```text
+./uds_cli can0 read-dtc
+TX: 19 02 FF
+RX: 59 02 FF C0 02 08
+{"cmd":"read-dtc","status":"ok","availability":"0xFF","count":1}
+DTC CC002 status=0x08
+```
+
+`C002` 是之前 bus-off 留下的 confirmed（0x08）。本轮没有专门做 bus-off 注入。
+
+```text
+./uds_cli can0 read-dtc-supported
+RX: 59 0A FF C0 01 00 C0 02 08 C0 03 00 C0 04 00 C0 05 00
+```
+
+5 条记录，18 字节，ISO-TP FF+CF 正常。
+
+```text
+./uds_cli can0 read-dtc-count
+RX: 59 01 FF 00 01
+```
+
+## C001 DHT11
+
+拔掉 DHT11 DATA，等约 6s：
+
+```text
+./uds_cli can0 read-dtc
+RX: 59 02 FF C0 01 0D C0 02 08
+DTC CC001 status=0x0D
+DTC CC002 status=0x08
+
+./uds_cli can0 read-dtc-count
+RX: 59 01 FF 00 02
+```
+
+`0x0D` = testFailed + pending + confirmed。
+
+## 清除
+
+```text
+./uds_cli can0 clear-dtc
+TX: 14 FF FF FF
+RX: 54
+
+./uds_cli can0 read-dtc
+RX: 59 02 FF
+
+./uds_cli can0 read-dtc-count
+RX: 59 01 FF 00 00
+```
+
+清除成功。
+
+## 备注
+
+- 输出里的 `DTC CC001` 是 CLI 打印格式多了一个 C，协议本身是 `C0 01`；
+  已修正为 `DTC C001`。
+- STM32 日志 `tx=869` 是之前 bus-off/发送失败的历史累计，本轮 DTC 请求/响应正常。
+- RAM 版 DTC 掉电会丢，Flash 持久化下一步。
