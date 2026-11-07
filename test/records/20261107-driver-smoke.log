@@ -1,0 +1,107 @@
+# 2026-11-07 i.MX6ULL 驱动冒烟测试
+
+平台：
+
+```text
+i.MX6ULL ATK-IMX6U
+Linux 4.1.15-g3dc0a4b
+toolchain /opt/fsl-imx-x11/4.1.15-2.1.0
+```
+
+## 1. hello.ko
+
+```bash
+insmod hello.ko
+dmesg | tail
+hello_ko: loaded
+```
+
+说明：
+
+```text
+vermagic 4.1.15-g3dc0a4b 正确
+Module.symvers 中 module_layout 版本正确
+```
+
+## 2. DHT22 IIO
+
+接线：
+
+```text
+VCC  3.3V
+DATA GPIO_4
+GND  GND
+```
+
+加载：
+
+```bash
+insmod dht22_iio.ko gpio_num=4
+dmesg | tail
+dht22: registered, gpio=4
+```
+
+设备：
+
+```bash
+ls /sys/bus/iio/devices/
+iio:device0
+cat /sys/bus/iio/devices/iio:device0/name
+dht22
+```
+
+读数：
+
+```bash
+cat in_temp_input
+22000
+cat in_humidityrelative_input
+76200
+```
+
+即：
+
+```text
+22.0°C
+76.2%RH
+```
+
+## 3. PIR 字符设备
+
+接线：
+
+```text
+VCC 5V
+OUT GPIO_9
+GND GND
+```
+
+加载：
+
+```bash
+insmod pir_gpio.ko gpio_num=9 debounce_ms=200 holdoff_ms=3000
+```
+
+测试：
+
+```bash
+cat /dev/pir
+```
+
+结果：
+
+```text
+/ dev/pir 能读
+边沿触发
+有 200ms 消抖 + 3s holdoff
+无电容时仍偶发多次输出
+```
+
+## 结论
+
+```text
+hello.ko           通过
+DHT22 IIO          通过
+PIR 字符设备        基本通过
+PIR 硬件稳定性      受限：无滤波电容
+```

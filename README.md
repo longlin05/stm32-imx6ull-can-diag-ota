@@ -251,6 +251,7 @@ sudo /home/root/gw can0
 | Bootloader A/B | App A/B、trial、rollback、confirm | **通过**：A 启动、trial B、未确认回滚 A、确认 B 固定启动 |
 | OTA `0x34/0x36/0x37` | 写非活动槽、trial、回滚 | **冒烟通过**：A↔B 双向、中断后保持旧槽；10/50 次未做 |
 | Linux 网关 | gatewayd/gwctl/SQLite/MQTT/OTA | **冒烟通过**：PC 收到 MQTT、SQLite 有记录、gatewayd OTA 成功 |
+| i.MX6ULL 驱动 | DHT22 IIO + PIR 字符设备 | **冒烟通过**：22.0°C/76.2%RH；PIR 有消抖，硬件无电容仍偶发 |
 | 24h 稳定性 | 丢帧 < 0.01%，P99 < 50 ms | 待实现 |
 | bus-off 恢复 | 3 s 内恢复 | 待实现 |
 
@@ -308,7 +309,7 @@ CSDN：`blog.csdn.net/longlin101`
 
 计划：
 
-10. 09 i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备
+10. 09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备（本地稿，待发布）
 11. 10 测试报告：24h/72h、P99、bus-off 数据
 
 ---
