@@ -71,7 +71,7 @@
 |---|---|---|---|---|---|
 | A-DT-00 | DTC 协议层 | 主机桩调用 `19 02/0A/01`、`14` | 响应格式正确 | **主机自测通过**：空表、置位 C001 0x0D、清除 | `test/records/20261105-dtc-host.log` |
 | A-DT-01 | `0xC001` DHT11 超时/校验错 | 拔 DATA/短接 DATA/人为改坏校验和 | DTC 置位，可读 | **真实 CAN 通过**：拔 DATA 后 C001=0x0D | `test/records/20261106-dtc-real-can.log` |
-| A-DT-02 | `0xC002` bus-off | `can0 down/up` 使 STM32 失去 ACK | DTC 置位，恢复后仍可读 | **真实 CAN 通过**：C002=0x08；`ESR.BOFF=1`；`14` 后清空 | `test/records/20261106-dtc-real-can.log` |
+| A-DT-02 | `0xC002` bus-off | `can0 down/up` 使 STM32 失去 ACK | DTC 置位，恢复后仍可读 | **真实 CAN 通过**：C002=0x08；`14` 后清空；存储已迁 sector 4 | `test/records/20261106-dtc-real-can.log` |
 | A-DT-03 | `0xC003` OTA CRC | 改固件 1 字节 | DTC 置位，不切换分区 | 占位，待 OTA |  |
 | A-DT-04 | `0xC004` 越界 | 遮挡/加热传感器 | DTC 置位 | 代码已接，待真实 CAN |  |
 | A-DT-05 | `0xC005` Flash | 擦除后写坏/校验失败 | DTC 置位 | 占位，待 Flash |  |
@@ -120,6 +120,20 @@
 | A-GW-05 | gatewayd OTA | `gwctl ota app_a.img` | `ota_sessions` 写 ok，复位后 A | **通过** | 同上 |
 | A-GW-06 | 固定 IP | 重启后 eth0 | 保持 192.168.137.103 | **通过**（关闭 connman） | 同上 |
 | A-RL-08 | MQTT 断线 | 停 broker 10 分钟 | 不崩溃，恢复后继续 | 待执行 |  |
+
+### 2.7 最小可靠性（15 分钟）
+
+| ID | 测试项 | 方法 | 通过标准 | 结果 | 日志 |
+|---|---|---|---|---|---|
+| A-RL-00 | 15 分钟连续运行 | gatewayd 周期 DTC + SQLite | 进程不重启，行数增长 | **通过**：rows 3014→3182，+168，PID 不变 | `test/records/20261107-reliability-15min.log` |
+| A-OT-09 | 3 次 OTA | A→B、B→A、A→B | 3/3 成功，复位后切槽 | **通过**：3 次 `ok`；中间 2 次失败为未复位/采样点问题 | 同上 |
+| A-RL-03 | bus-off 恢复 | can0 down/up | 3s 内恢复，gatewayd 不崩 | **通过**：恢复 ERROR-ACTIVE，status online | 同上 |
+| A-RL-07 | gatewayd 重启 | pkill + nohup | 自动恢复 | **通过**：status online | 同上 |
+| A-RL-05 | MQTT 断开 | 停 broker | 不崩溃，恢复后继续 | **通过（短时）**：停 broker 后 gatewayd 正常，重开恢复 | 同上 |
+| A-RL-01 | 24h 连续运行 | 24h | 丢帧 <0.01% | 未执行 |  |
+| A-OT-02 | 10 次 OTA | 10 次 | 10/10 | 未执行 |  |
+| A-OT-03 | 50 次 OTA | 50 次 | 50/50 | 未执行 |  |
+| A-OT-04 | 25%/50%/75% 掉电 | 多点掉电 | 回滚 | 未执行（仅做一次中断） |  |
 
 ---
 

@@ -1,0 +1,115 @@
+# 2026-11-07 最小可靠性测试（15 分钟）
+
+## 环境
+
+```text
+STM32F407 + Bootloader + App A/B
+i.MX6ULL Linux 4.1.15-g3dc0a4b
+can0 500 kbps sample-point 0.750
+gatewayd + SQLite + MQTT
+```
+
+## 1. 三次 OTA
+
+```text
+B -> A   ok
+A -> B   ok
+A -> B   ok
+```
+
+`ota_sessions`：
+
+```text
+2026-11-07T13:03:52|0x08060000|73660|ok|transfer complete
+2026-11-07T13:01:46|0x08020000|73660|ok|transfer complete
+2026-11-07T12:57:42|0x08060000|73660|ok|transfer complete
+```
+
+中间失败：
+
+```text
+2026-11-07T12:58:54|0x08020000|73660|failed|0x36 failed
+2026-11-07T12:54:04|0x08020000|73660|failed|0x34 failed
+```
+
+原因：未复位 / CAN 采样点不一致，修正后成功。
+
+## 2. bus-off 恢复
+
+```bash
+ip link set can0 down
+sleep 2
+ip link set can0 up type can bitrate 500000 sample-point 0.75 restart-ms 100
+```
+
+结果：
+
+```text
+can0 ERROR-ACTIVE
+gwctl status online:true
+```
+
+## 3. gatewayd 重启
+
+```text
+pkill gatewayd -> nohup gatewayd
+gwctl status online:true
+```
+
+## 4. MQTT 断开
+
+```text
+PC 停 broker
+板子 gwctl dtc 仍正常
+重启 broker 后恢复
+```
+
+## 5. 15 分钟 soak
+
+开始 13:24:53：
+
+```text
+rows=3014
+pid=12098
+```
+
+结束 13:38:55：
+
+```text
+rows=3182
+pid=12098
++168 rows
+```
+
+增长：
+
+```text
+约 12 rows/min
+```
+
+资源：
+
+```text
+CPU 0.0%
+RSS 2092 KB
+DB 179K
+```
+
+## 结论
+
+```text
+15 分钟稳定       通过
+gatewayd 未重启    通过
+SQLite 持续增长    通过
+3 次 OTA          通过
+bus-off 恢复      通过
+MQTT 断开恢复     通过
+```
+
+未做：
+
+```text
+24h / 72h
+50 次 OTA
+多点掉电
+```

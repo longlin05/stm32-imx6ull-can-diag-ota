@@ -36,7 +36,7 @@
 | 07 | OTA 实战：0x34/0x36/0x37，A/B 双向升级与中断保持旧槽 | `a-v0.8-ota` | 已发布 | https://blog.csdn.net/longlin101/article/details/170201534 |
 | 08 | Linux 网关：SocketCAN + gatewayd + SQLite + MQTT | `a-v0.9-gateway` | 已发布 | https://blog.csdn.net/longlin101/article/details/170245246 |
 | 09 | i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备 | `b-v0.1` | 本地稿完成，待发布 | [`docs/blog/09-imx6ull-drivers.md`](blog/09-imx6ull-drivers.md) |
-| 10 | 测试报告：24h/72h、P99、bus-off 数据 | `a-v1.0` | 待写 |  |
+| 10 | 测试报告：15 分钟稳定性、3 次 OTA、CAN 采样点 | `a-v1.0` | 本地稿完成，待发布 | [`docs/blog/10-test-report.md`](blog/10-test-report.md) |
 
 > 发布后把链接补进表格，并把系列索引放到 CSDN 个人主页/置顶。
 
