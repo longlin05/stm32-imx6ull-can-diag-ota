@@ -109,6 +109,18 @@
 | A-RL-06 | 磁盘满 | 填满分区 | 不崩溃，报警 | 待执行 |  |
 | A-RL-07 | 网关重启 | `systemctl restart` | 自动恢复 | 待执行 |  |
 
+### 2.6 Linux 网关
+
+| ID | 测试项 | 方法 | 通过标准 | 结果 | 日志 |
+|---|---|---|---|---|---|
+| A-GW-01 | gatewayd 启动 | `rc.local` 启动 | 进程存在，socket 可连 | **通过** | `test/records/20261107-gateway-smoke.log` |
+| A-GW-02 | gwctl 诊断 | status / dtc / read-did | JSON 正常 | **通过**：`online:true`、`62F1B000`、`5902FFC00208` | 同上 |
+| A-GW-03 | SQLite | 记录 UDS/OTA | 可查询 | **通过** | 同上 |
+| A-GW-04 | MQTT | PC 订阅 `gateway/#` | 收到 dtc/status/event | **通过** | 同上 |
+| A-GW-05 | gatewayd OTA | `gwctl ota app_a.img` | `ota_sessions` 写 ok，复位后 A | **通过** | 同上 |
+| A-GW-06 | 固定 IP | 重启后 eth0 | 保持 192.168.137.103 | **通过**（关闭 connman） | 同上 |
+| A-RL-08 | MQTT 断线 | 停 broker 10 分钟 | 不崩溃，恢复后继续 | 待执行 |  |
+
 ---
 
 ## 3. 指标汇总
