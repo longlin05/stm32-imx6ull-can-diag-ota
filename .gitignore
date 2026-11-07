@@ -1,6 +1,8 @@
 # STM32CubeIDE generated / vendor code (use .ioc to regenerate)
 .metadata/
 Drivers/
+!drivers/
+!drivers/**
 Middlewares/Third_Party/FreeRTOS/
 
 # Build output
