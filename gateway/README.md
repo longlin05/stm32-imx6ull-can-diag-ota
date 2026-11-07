@@ -91,6 +91,7 @@ sudo ./gatewayd -c gatewayd.conf
 ./gwctl dtc
 ./gwctl session 03
 ./gwctl read-did F190
+./gwctl read-did F1B0   # 00=App A, 01=App B
 ./gwctl clear-dtc
 
 # OTA 由 gatewayd 执行，写入非活动槽

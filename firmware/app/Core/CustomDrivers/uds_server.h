@@ -57,12 +57,16 @@ extern "C" {
 #define UDS_DID_PIR_ON       0xF1A0U
 #define UDS_DID_ENV_PERIOD   0xF1A1U
 #define UDS_DID_HB_PERIOD    0xF1A2U
+#define UDS_DID_APP_SLOT     0xF1B0U
 
 /* S3：会话保持时间，5 s 无请求回默认会话 */
 #define UDS_S3_TIMEOUT_MS    5000U
 
 /** 初始化 UDS 服务端状态（默认会话、清零计时） */
 void UdsServer_Init(void);
+
+/* 0=App A, 1=App B；用于 22 F1 B0 */
+void UdsServer_SetAppSlot(uint8_t slot);
 
 /** 1 ms 任务里调用：处理 S3 会话超时 */
 void UdsServer_Tick(uint32_t now_ms);
