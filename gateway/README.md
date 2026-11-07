@@ -12,7 +12,9 @@
 - ✅ vcan 自测对端（[test/mock_ecu.c](test/mock_ecu.c)）。
 - ✅ 免 root 进程内自测（[test/selftest.c](test/selftest.c)）。
 - ✅ UDS Client（[src/uds_client.c](src/uds_client.c)）+ CLI（[src/uds_cli.c](src/uds_cli.c)）：0x10 / 0x3E / 0x22。
-- ⬜ STM32 UDS Server 联调、DTC、FOTA。
+- ✅ UDS / DTC / OTA 已联调（详见项目根 README）。
+- 🟡 SQLite 事件日志（可选编译，`GW_DB` 指定数据库）。
+- ⬜ MQTT / 常驻网关。
 
 ## 构建
 
@@ -55,6 +57,102 @@ ip -details link show can0
 
 `read-dtc` 发 `19 02 FF`；`read-dtc-supported` 发 `19 0A`；
 `read-dtc-count` 发 `19 01 FF`；`clear-dtc` 发 `14 FF FF FF`。
+
+## SQLite 日志
+
+需要 sqlite3 开发库：
+
+```bash
+sudo apt install libsqlite3-dev
+make clean && make
+```
+
+如果 `pkg-config` 能识别 sqlite3，Makefile 会自动加 `-DGW_WITH_SQLITE` 和 `-lsqlite3`。
+
+运行：
+
+```bash
+GW_DB=/root/my_ai/gateway.db ./uds_cli can0 read-dtc
+sqlite3 /root/my_ai/gateway.db   "select ts,req_hex,resp_hex,status from uds_events order by id desc limit 10;"
+```
+
+没有 SQLite 时仍然可以编译运行，只是 `gw_log_*` 是空操作。
+
+0x36 的每个块不记日志，只记 0x34/0x37 和普通诊断请求，避免 OTA 时数据库爆炸。
+
+## gatewayd / gwctl
+
+```bash
+# 先确保 can0 已 up
+sudo ./gatewayd -c gatewayd.conf
+
+# 另一个终端
+./gwctl status
+./gwctl dtc
+./gwctl session 03
+./gwctl read-did F190
+./gwctl read-did F1B0   # 00=App A, 01=App B
+./gwctl clear-dtc
+
+# OTA 由 gatewayd 执行，写入非活动槽
+./gwctl ota app_a.img 0x08020000
+./gwctl ota app_b.img 0x08060000
+```
+
+`gatewayd` 默认读 `/etc/gatewayd.conf`，仓库里有一份示例：
+
+```ini
+can_if=can0
+db=/root/my_ai/gateway.db
+socket=/run/gatewayd.sock
+mqtt_host=192.168.137.1
+mqtt_port=1883
+mqtt_prefix=gateway/imx6ull-01
+poll_ms=5000
+```
+
+当前 `gatewayd` 支持：
+
+```text
+status / dtc / session / read-did / clear-dtc / ota
+周期 DTC + SQLite + MQTT publish
+```
+
+OTA 现在由 gatewayd 执行，并写入 `ota_sessions` 表。
+
+## systemd 开机自启
+
+```bash
+cp systemd/gatewayd.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now gatewayd
+systemctl status gatewayd
+```
+
+看日志：
+
+```bash
+journalctl -u gatewayd -f
+```
+
+停止：
+
+```bash
+systemctl stop gatewayd
+```
+
+> 服务会先尝试 `ip link set can0 up ...`，失败也继续启动；CAN 是否真正可用由 gatewayd 的 UDS 超时体现。
+
+---
+
+MQTT 客户端：
+
+```text
+有 libmosquitto 时用 libmosquitto
+没有库时用内置最小 MQTT 3.1.1 QoS0 发布器
+```
+
+所以交叉编译不再强依赖 ARM 版 libmosquitto。
 
 ## vcan 自测
 

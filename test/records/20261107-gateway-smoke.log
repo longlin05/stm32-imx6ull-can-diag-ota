@@ -1,0 +1,88 @@
+# 2026-11-07 i.MX6ULL 网关冒烟测试
+
+平台：
+
+```text
+i.MX6ULL ATK-IMX6U
+Linux 4.1.15
+can0 500 kbps
+PC broker: 192.168.137.1:1883
+board eth0: 192.168.137.103/24
+```
+
+## gatewayd
+
+```bash
+cd /home/root/my_ai
+nohup ./gatewayd -c gatewayd.conf >/var/log/gatewayd.log 2>&1 &
+```
+
+启动日志：
+
+```text
+gatewayd: can=can0 db=/home/root/my_ai/gateway.db
+          socket=/run/gatewayd.sock mqtt=192.168.137.1:1883
+```
+
+## gwctl
+
+```text
+./gwctl status
+{"ok":true,"online":true,"can":"can0"}
+
+./gwctl read-did f1b0
+{"ok":true,"cmd":"read-did","rx":"62F1B000"}
+
+./gwctl dtc
+{"ok":true,"cmd":"dtc","rx":"5902FFC00208"}
+```
+
+## SQLite
+
+```text
+2026-11-07T08:43:38|0x08020000|73528|ok|transfer complete
+2026-11-07T08:43:38|1902FF|5902FF|ok
+```
+
+## MQTT
+
+PC：
+
+```bat
+mosquitto_sub.exe -h 192.168.137.1 -t "gateway/#" -v
+```
+
+收到：
+
+```text
+gateway/imx6ull-01/dtc {"cmd":"dtc","rx":"5902FFC00208"}
+gateway/imx6ull-01/status {"ok":true,"online":true,"can":"can0"}
+gateway/imx6ull-01/event {"ok":true,"cmd":"read-did","rx":"62F1B000"}
+```
+
+## OTA
+
+```text
+./gwctl ota /home/root/my_ai/app_a.img 0x08020000
+{"ok":true,"cmd":"ota","addr":"0x08020000","size":73528,"status":"ok"}
+```
+
+复位后：
+
+```text
+PC = 0x080284AE
+Metadata active=A
+```
+
+## 结论
+
+```text
+gatewayd + gwctl             通过
+SQLite                       通过
+MQTT publish                 通过
+gatewayd OTA                 通过
+DID F1B0                     通过
+网关开机自启                  通过（rc.local）
+```
+
+未做：24h、50 次 OTA、MQTT 断线补传、CPU/RSS 统计。

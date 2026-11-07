@@ -5,6 +5,7 @@
 
 #include "app_report.h"
 #include "dtc.h"
+#include "ota_server.h"
 #include "main.h"
 
 /* 第一版 VIN 是占位值，长度必须 17 字节；量产由产线写入 */
@@ -15,6 +16,7 @@ static const uint8_t s_vin[17] = {
 
 static const uint8_t s_calib_id[4] = { 0x01U, 0x00U, 0x00U, 0x00U };
 
+static uint8_t  s_app_slot;
 static uint8_t  s_session;
 static uint32_t s_last_activity_ms;
 
@@ -29,6 +31,11 @@ static uint16_t uds_negative(uint8_t *resp, uint16_t cap,
   resp[1] = sid;
   resp[2] = nrc;
   return 3U;
+}
+
+void UdsServer_SetAppSlot(uint8_t slot)
+{
+  s_app_slot = (slot == 0U) ? 0U : 1U;
 }
 
 static uint16_t uds_read_did(uint16_t did, uint8_t *resp, uint16_t cap)
@@ -103,6 +110,15 @@ static uint16_t uds_read_did(uint16_t did, uint8_t *resp, uint16_t cap)
       hb[1] = (uint8_t)((v >> 8) & 0xFFU);
       data = hb;
       data_len = 2U;
+      break;
+    }
+
+    case UDS_DID_APP_SLOT:
+    {
+      static uint8_t slot;
+      slot = s_app_slot;
+      data = &slot;
+      data_len = 1U;
       break;
     }
 
@@ -328,6 +344,11 @@ uint16_t UdsServer_Handle(const uint8_t *req, uint16_t req_len,
 
     case UDS_SID_CLEAR_DTC:
       return uds_clear_dtc(req, req_len, resp, resp_cap);
+
+    case UDS_SID_REQUEST_DOWNLOAD:
+    case UDS_SID_TRANSFER_DATA:
+    case UDS_SID_REQUEST_XFER_EXIT:
+      return OtaServer_Handle(req, req_len, resp, resp_cap);
 
     default:
       return uds_negative(resp, resp_cap, req[0],

@@ -4,6 +4,7 @@
 
 #include "uds_client.h"
 #include "uds.h"
+#include "gw_log.h"
 
 static void print_hex(const uint8_t *data, uint16_t len)
 {
@@ -182,6 +183,7 @@ int main(int argc, char **argv)
         usage(argv[0]);
         return 1;
     }
+    gw_log_init(NULL);
     ifname = argv[1];
     cmd = argv[2];
 

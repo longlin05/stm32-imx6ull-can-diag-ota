@@ -1,0 +1,17 @@
+[Unit]
+Description=CAN/UDS/OTA gateway
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/root/my_ai
+ExecStartPre=-/sbin/ip link set can0 up type can bitrate 500000 restart-ms 100
+ExecStart=/home/root/my_ai/gatewayd -c /home/root/my_ai/gatewayd.conf
+Restart=on-failure
+RestartSec=2
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target
