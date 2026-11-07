@@ -394,7 +394,7 @@ static void periodic_poll(void)
     }
     hex[0] = '\0';
     hex_append(hex, sizeof hex, resp, resp_len);
-    snprintf(json, sizeof json, "{\"cmd\":\"dtc\",\"rx\":\"%s\"}", hex);
+    snprintf(json, sizeof json, "{\"ok\":true,\"cmd\":\"dtc\",\"rx\":\"%s\"}", hex);
     publish_json("dtc", json);
 }
 
