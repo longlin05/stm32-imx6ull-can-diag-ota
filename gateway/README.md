@@ -120,6 +120,31 @@ status / dtc / session / read-did / clear-dtc / ota
 
 OTA 现在由 gatewayd 执行，并写入 `ota_sessions` 表。
 
+## systemd 开机自启
+
+```bash
+cp systemd/gatewayd.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now gatewayd
+systemctl status gatewayd
+```
+
+看日志：
+
+```bash
+journalctl -u gatewayd -f
+```
+
+停止：
+
+```bash
+systemctl stop gatewayd
+```
+
+> 服务会先尝试 `ip link set can0 up ...`，失败也继续启动；CAN 是否真正可用由 gatewayd 的 UDS 超时体现。
+
+---
+
 MQTT 客户端：
 
 ```text
