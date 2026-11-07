@@ -53,6 +53,14 @@ int uds_request(uds_client_t *c,
     /* 丢掉上一条的残留响应，避免串包 */
     isotp_reset_rx(&c->iso);
 
+    /* 清掉 socket 里还没读的旧帧，避免把上一条 DTC 响应当成 0x34 响应 */
+    while (can_poll(c->fd, 0) > 0) {
+        struct can_frame old;
+        while (can_read(c->fd, &old) == (int)sizeof old) {
+            /* drain */
+        }
+    }
+
     if (isotp_send(&c->iso, req, req_len) != 0) {
         gw_log_uds(c->ifname, req, req_len, NULL, 0, "send-fail");
         return -1;
@@ -78,9 +86,20 @@ int uds_request(uds_client_t *c,
 
         if (isotp_rx_ready(&c->iso)) {
             uint16_t n = isotp_rx_len(&c->iso);
+            const uint8_t *rx = isotp_rx_data(&c->iso);
+
+            /* UDS 响应 SID 必须匹配：0x7F + 原 SID，或 SID+0x40。
+               不匹配的旧响应（例如并发 DTC 的 59 02 FF）直接丢弃。 */
+            if (n == 0U ||
+                (rx[0] == 0x7FU && (n < 2U || rx[1] != req[0])) ||
+                (rx[0] != 0x7FU && rx[0] != (uint8_t)(req[0] + 0x40U))) {
+                isotp_reset_rx(&c->iso);
+                continue;
+            }
+
             if (n > resp_cap)
                 n = resp_cap;
-            memcpy(resp, isotp_rx_data(&c->iso), n);
+            memcpy(resp, rx, n);
             if (resp_len != NULL)
                 *resp_len = n;
             isotp_reset_rx(&c->iso);
