@@ -1,7 +1,7 @@
 # STM32 + i.MX6ULL CAN 诊断与 OTA（08）：Linux 网关——SocketCAN、gatewayd、SQLite 与 MQTT，从“一次命令”到“常驻服务”
 
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
-> 上一篇：07 OTA：0x34/0x36/0x37，A/B 双向升级与中断保持旧槽（本地稿，待发布）
+> 上一篇：[07 OTA：0x34/0x36/0x37，A/B 双向升级与中断保持旧槽](https://blog.csdn.net/longlin101/article/details/170201534)
 > 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
 > 本文对应 tag：`a-v0.9-gateway`
 
