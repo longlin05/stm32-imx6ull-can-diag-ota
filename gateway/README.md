@@ -115,13 +115,14 @@ status / dtc / session / read-did / clear-dtc
 
 OTA 暂仍由 `uds_cli ota` 完成，后续再搬进 daemon。
 
-MQTT 编译检测：
+MQTT 客户端：
 
-```bash
-pkg-config --libs libmosquitto
+```text
+有 libmosquitto 时用 libmosquitto
+没有库时用内置最小 MQTT 3.1.1 QoS0 发布器
 ```
 
-有库才会启用 `GW_WITH_MQTT`，没有库时 MQTT 是空操作。
+所以交叉编译不再强依赖 ARM 版 libmosquitto。
 
 ## vcan 自测
 
