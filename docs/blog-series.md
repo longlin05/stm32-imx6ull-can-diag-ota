@@ -34,7 +34,7 @@
 | 05 | DTC：`0x19/0x14`，5 类故障检测、存储与清除 | `a-v0.6-dtc` | 已发布 | https://blog.csdn.net/longlin101/article/details/170192523 |
 | 06 | CAN Bootloader：A/B 分区、CRC32、跳转与回滚 | `a-v0.7-boot` | 已发布 | https://blog.csdn.net/longlin101/article/details/170201376 |
 | 07 | OTA 实战：0x34/0x36/0x37，A/B 双向升级与中断保持旧槽 | `a-v0.8-ota` | 本地稿完成，待发布 | [`docs/blog/07-ota.md`](blog/07-ota.md) |
-| 08 | Linux 网关：SocketCAN + 诊断 CLI + SQLite | `a-v1.0` | 待写 |  |
+| 08 | Linux 网关：SocketCAN + gatewayd + SQLite + MQTT | `a-v0.9-gateway` | 本地稿完成，待发布 | [`docs/blog/08-linux-gateway.md`](blog/08-linux-gateway.md) |
 | 09 | i.MX6ULL 驱动：AHT20 IIO + PIR 字符设备 | `b-v0.1` | 待写 |  |
 | 10 | 测试报告：24h/72h、P99、bus-off 数据 | `a-v1.0` | 待写 |  |
 
