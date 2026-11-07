@@ -80,6 +80,49 @@ sqlite3 /root/my_ai/gateway.db   "select ts,req_hex,resp_hex,status from uds_eve
 
 0x36 的每个块不记日志，只记 0x34/0x37 和普通诊断请求，避免 OTA 时数据库爆炸。
 
+## gatewayd / gwctl
+
+```bash
+# 先确保 can0 已 up
+sudo ./gatewayd -c gatewayd.conf
+
+# 另一个终端
+./gwctl status
+./gwctl dtc
+./gwctl session 03
+./gwctl read-did F190
+./gwctl clear-dtc
+```
+
+`gatewayd` 默认读 `/etc/gatewayd.conf`，仓库里有一份示例：
+
+```ini
+can_if=can0
+db=/root/my_ai/gateway.db
+socket=/run/gatewayd.sock
+mqtt_host=192.168.137.1
+mqtt_port=1883
+mqtt_prefix=gateway/imx6ull-01
+poll_ms=5000
+```
+
+当前 `gatewayd` 支持：
+
+```text
+status / dtc / session / read-did / clear-dtc
+周期 DTC + SQLite + MQTT publish
+```
+
+OTA 暂仍由 `uds_cli ota` 完成，后续再搬进 daemon。
+
+MQTT 编译检测：
+
+```bash
+pkg-config --libs libmosquitto
+```
+
+有库才会启用 `GW_WITH_MQTT`，没有库时 MQTT 是空操作。
+
 ## vcan 自测
 
 ```bash

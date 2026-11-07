@@ -64,3 +64,5 @@ secrets.h
 !*.ld
 !*.s
 !*.S
+gateway/gatewayd
+gateway/gwctl
