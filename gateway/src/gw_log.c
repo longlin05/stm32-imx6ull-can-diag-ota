@@ -2,6 +2,7 @@
 
 #include "gw_log.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -75,7 +76,15 @@ void gw_log_init(const char *path)
             "resp_hex TEXT,"
             "req_len INTEGER,"
             "resp_len INTEGER,"
-            "status TEXT);",
+            "status TEXT);"
+            "CREATE TABLE IF NOT EXISTS ota_sessions ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "ts TEXT NOT NULL,"
+            "addr TEXT,"
+            "size INTEGER,"
+            "path TEXT,"
+            "status TEXT,"
+            "detail TEXT);",
             NULL, NULL, &err) != SQLITE_OK) {
         sqlite3_free(err);
         sqlite3_close(g_db);
@@ -130,6 +139,32 @@ void gw_log_uds(const char *ifname,
     free(resp_hex);
 }
 
+void gw_log_ota(uint32_t addr, uint32_t size, const char *path,
+                const char *status, const char *detail)
+{
+    sqlite3_stmt *stmt;
+    char ts[32];
+    char addr_text[16];
+
+    if (!g_db) return;
+    iso_time(ts, sizeof ts);
+    snprintf(addr_text, sizeof addr_text, "0x%08X", (unsigned)addr);
+
+    if (sqlite3_prepare_v2(g_db,
+            "INSERT INTO ota_sessions(ts,addr,size,path,status,detail)"
+            " VALUES(?,?,?,?,?,?);",
+            -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, ts, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, addr_text, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(stmt, 3, (int)size);
+        sqlite3_bind_text(stmt, 4, path ? path : "", -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 5, status ? status : "", -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 6, detail ? detail : "", -1, SQLITE_TRANSIENT);
+        (void)sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+}
+
 void gw_log_close(void)
 {
     if (g_db) {
@@ -142,6 +177,11 @@ void gw_log_close(void)
 
 void gw_log_init(const char *path) { (void)path; }
 void gw_log_close(void) { }
+void gw_log_ota(uint32_t addr, uint32_t size, const char *path,
+                const char *status, const char *detail)
+{
+    (void)addr; (void)size; (void)path; (void)status; (void)detail;
+}
 void gw_log_uds(const char *ifname,
                 const uint8_t *req, uint16_t req_len,
                 const uint8_t *resp, uint16_t resp_len,

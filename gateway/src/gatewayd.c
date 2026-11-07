@@ -112,18 +112,26 @@ static int ensure_client(void)
     return 0;
 }
 
-static int uds_call(const uint8_t *req, uint16_t req_len,
-                    uint8_t *resp, uint16_t resp_cap, uint16_t *resp_len)
+static int uds_call_timeout(const uint8_t *req, uint16_t req_len,
+                            uint8_t *resp, uint16_t resp_cap,
+                            uint16_t *resp_len, int timeout_ms)
 {
     if (ensure_client() != 0) {
         return -1;
     }
-    if (uds_request(&g_client, req, req_len, resp, resp_cap, resp_len, 3000) != 0) {
+    if (uds_request(&g_client, req, req_len, resp, resp_cap,
+                    resp_len, timeout_ms) != 0) {
         uds_client_close(&g_client);
         g_client_ready = 0;
         return -1;
     }
     return 0;
+}
+
+static int uds_call(const uint8_t *req, uint16_t req_len,
+                    uint8_t *resp, uint16_t resp_cap, uint16_t *resp_len)
+{
+    return uds_call_timeout(req, req_len, resp, resp_cap, resp_len, 3000);
 }
 
 static void hex_append(char *out, size_t cap, const uint8_t *data, uint16_t len)
@@ -144,6 +152,113 @@ static void publish_json(const char *suffix, const char *json)
     gw_mqtt_publish(suffix, json);
 }
 
+static void put_be32(uint8_t *p, uint32_t v)
+{
+    p[0] = (uint8_t)(v >> 24);
+    p[1] = (uint8_t)(v >> 16);
+    p[2] = (uint8_t)(v >> 8);
+    p[3] = (uint8_t)v;
+}
+
+static void ota_transfer(const char *path, const char *addr_text,
+                         char *out, size_t out_cap)
+{
+    FILE *fp;
+    long fsz;
+    uint8_t *image;
+    uint8_t req[2 + 1024];
+    uint8_t resp[512];
+    uint16_t resp_len = 0;
+    uint32_t addr;
+    uint32_t offset;
+    uint8_t counter = 1;
+    char *end = NULL;
+
+    addr = (uint32_t)strtoul(addr_text, &end, 0);
+    if (end == addr_text || *end != '\0') {
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"bad address\"}");
+        return;
+    }
+
+    fp = fopen(path, "rb");
+    if (!fp) {
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"open image failed\"}");
+        gw_log_ota(addr, 0, path, "failed", "open image failed");
+        publish_json("ota", out);
+        return;
+    }
+    fseek(fp, 0, SEEK_END);
+    fsz = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    if (fsz <= 0 || fsz > 0x40000) {
+        fclose(fp);
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"bad image size\"}");
+        gw_log_ota(addr, 0, path, "failed", "bad image size");
+        publish_json("ota", out);
+        return;
+    }
+    image = malloc((size_t)fsz);
+    if (!image || fread(image, 1, (size_t)fsz, fp) != (size_t)fsz) {
+        free(image);
+        fclose(fp);
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"read image failed\"}");
+        gw_log_ota(addr, (uint32_t)fsz, path, "failed", "read image failed");
+        publish_json("ota", out);
+        return;
+    }
+    fclose(fp);
+
+    req[0] = 0x34; req[1] = 0x00; req[2] = 0x44;
+    put_be32(&req[3], addr);
+    put_be32(&req[7], (uint32_t)fsz);
+    if (uds_call_timeout(req, 11, resp, sizeof resp, &resp_len, 15000) != 0 ||
+        resp_len < 1 || resp[0] != 0x74) {
+        free(image);
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"0x34 failed\"}");
+        gw_log_ota(addr, (uint32_t)fsz, path, "failed", "0x34 failed");
+        publish_json("ota", out);
+        return;
+    }
+
+    offset = 0;
+    while (offset < (uint32_t)fsz) {
+        uint32_t chunk = (uint32_t)fsz - offset;
+        if (chunk > 1024U) chunk = 1024U;
+        req[0] = 0x36;
+        req[1] = counter;
+        memcpy(&req[2], image + offset, chunk);
+        if (uds_call_timeout(req, (uint16_t)(2U + chunk),
+                             resp, sizeof resp, &resp_len, 5000) != 0 ||
+            resp_len < 2 || resp[0] != 0x76 || resp[1] != counter) {
+            free(image);
+            snprintf(out, out_cap, "{\"ok\":false,\"error\":\"0x36 failed at %u\"}",
+                     (unsigned)offset);
+            gw_log_ota(addr, (uint32_t)fsz, path, "failed", "0x36 failed");
+            publish_json("ota", out);
+            return;
+        }
+        offset += chunk;
+        counter = (counter == 0xFFU) ? 0U : (uint8_t)(counter + 1U);
+    }
+
+    req[0] = 0x37;
+    if (uds_call_timeout(req, 1, resp, sizeof resp, &resp_len, 10000) != 0 ||
+        resp_len < 1 || resp[0] != 0x77) {
+        free(image);
+        snprintf(out, out_cap, "{\"ok\":false,\"error\":\"0x37 failed\"}");
+        gw_log_ota(addr, (uint32_t)fsz, path, "failed", "0x37 failed");
+        publish_json("ota", out);
+        return;
+    }
+
+    free(image);
+    gw_log_ota(addr, (uint32_t)fsz, path, "ok", "transfer complete");
+    snprintf(out, out_cap,
+             "{\"ok\":true,\"cmd\":\"ota\",\"addr\":\"0x%08X\",\"size\":%ld,\"status\":\"ok\"}",
+             (unsigned)addr, fsz);
+    publish_json("ota", out);
+}
+
 static void handle_command(const char *line, char *out, size_t out_cap)
 {
     char buf[512];
@@ -160,7 +275,6 @@ static void handle_command(const char *line, char *out, size_t out_cap)
     cmd = strtok_r(buf, " \t", &save);
     arg1 = strtok_r(NULL, " \t", &save);
     arg2 = strtok_r(NULL, " \t", &save);
-    (void)arg2;
 
     if (!cmd) {
         snprintf(out, out_cap, "{\"ok\":false,\"error\":\"empty\"}");
@@ -237,9 +351,8 @@ static void handle_command(const char *line, char *out, size_t out_cap)
         return;
     }
 
-    if (strcasecmp(cmd, "OTA") == 0) {
-        snprintf(out, out_cap,
-                 "{\"ok\":false,\"error\":\"ota is still uds_cli in this build\"}");
+    if (strcasecmp(cmd, "OTA") == 0 && arg1 && arg2) {
+        ota_transfer(arg1, arg2, out, out_cap);
         return;
     }
 

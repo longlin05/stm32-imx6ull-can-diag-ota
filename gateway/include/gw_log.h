@@ -10,5 +10,7 @@ void gw_log_uds(const char *ifname,
                 const uint8_t *req, uint16_t req_len,
                 const uint8_t *resp, uint16_t resp_len,
                 const char *status);
+void gw_log_ota(uint32_t addr, uint32_t size, const char *path,
+                const char *status, const char *detail);
 
 #endif /* GW_LOG_H */

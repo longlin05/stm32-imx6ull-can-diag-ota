@@ -92,6 +92,10 @@ sudo ./gatewayd -c gatewayd.conf
 ./gwctl session 03
 ./gwctl read-did F190
 ./gwctl clear-dtc
+
+# OTA 由 gatewayd 执行，写入非活动槽
+./gwctl ota app_a.img 0x08020000
+./gwctl ota app_b.img 0x08060000
 ```
 
 `gatewayd` 默认读 `/etc/gatewayd.conf`，仓库里有一份示例：
@@ -109,11 +113,11 @@ poll_ms=5000
 当前 `gatewayd` 支持：
 
 ```text
-status / dtc / session / read-did / clear-dtc
+status / dtc / session / read-did / clear-dtc / ota
 周期 DTC + SQLite + MQTT publish
 ```
 
-OTA 暂仍由 `uds_cli ota` 完成，后续再搬进 daemon。
+OTA 现在由 gatewayd 执行，并写入 `ota_sessions` 表。
 
 MQTT 客户端：
 
