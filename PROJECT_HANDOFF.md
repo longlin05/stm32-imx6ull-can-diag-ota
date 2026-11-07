@@ -354,7 +354,30 @@ platform_driver probe 自动申请
 pinctrl 配置复用
 ```
 
-### 先确认板级 DTS
+### 板级 DTS 已确认（2026-11-07，详见 `docs/b-dts-plan.md`）
+
+```text
+compatible = fsl,imx6ull-14x14-evk, fsl,imx6ull
+model      = Freescale i.MX6 ULL 14x14 EVK Board
+root       = /dev/mmcblk1p2（SD），boot 分区 mmcblk1p1 vfat
+DT 里已有 alientek,dht11 / alientek,ds18b20 厂商节点
+```
+
+结论：板子 DTB 是**厂商改过的 EVK**，VM 里那棵 `rel_imx_4.1.15_2.1.0_ga` 是原版树，
+不能直接拿它重编 DTB。
+
+路线定为：
+
+```text
+从板子 boot 分区取 imx6ull-14x14-evk.dtb
+  → dtc 反编译 → 加节点 → 重编成 imx6ull-14x14-evk-b.dtb
+  → fw_setenv fdt_file 切换，回退只改 env
+驱动同步转 platform_driver + of_match，module_param 留作回退
+```
+
+先确认 fdt_file 与厂商 dht11 占用的 GPIO（可能和 GPIO1_IO04 冲突），再动 DTS。
+
+### 原始确认步骤（留档）
 
 板子：
 
@@ -369,7 +392,7 @@ ls /proc/device-tree
 ls /home/lin/imx6ull/linux-imx-rel_imx_4.1.15_2.1.0_ga/arch/arm/boot/dts/ | grep -i imx6ull
 ```
 
-如果源码里没有 ATK-IMX6U 的 DTS，有两个方案：
+如果源码里没有 ATK-IMX6U 的 DTS（已确认：VM 树是原版，板子是厂商 DTB）：
 
 ```text
 A. 从板子 /sys/firmware/fdt 导出 DTB，反编译 DTS，加节点，重新编 DTB
@@ -428,6 +451,14 @@ PIR：
 threaded IRQ
 顶半部记录/唤醒
 线程半部读 GPIO、消抖、wake_up
+```
+
+已知要修的 bug（`docs/b-dts-plan.md` 第 5 节）：
+
+```text
+dht22_exit() 没 unregister/free/gpio_free
+→ rmmod 后 GPIO 一直被占，第二次 insmod 失败
+→ 改 devm_* 时一并解决
 ```
 
 验收：
