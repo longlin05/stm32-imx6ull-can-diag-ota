@@ -47,7 +47,8 @@ tag：
 
 ```text
 a-v1.0   功能版：3 次 OTA + 15 分钟 soak
-b-v0.1   i.MX6ULL 驱动冒烟版
+b-v0.1   i.MX6ULL 驱动冒烟版（module parameter 传 GPIO）
+b-v0.2   device tree + platform driver（2026-11-09 板上实测通过）
 ```
 
 ### STM32 工程
