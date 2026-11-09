@@ -252,7 +252,7 @@ sudo /home/root/gw can0
 | OTA `0x34/0x36/0x37` | 写非活动槽、trial、回滚 | **冒烟通过**：A↔B 双向、中断后保持旧槽；10/50 次未做 |
 | Linux 网关 | gatewayd/gwctl/SQLite/MQTT/OTA | **冒烟通过**：PC 收到 MQTT、SQLite 有记录、gatewayd OTA 成功 |
 | 最小可靠性 | 15min soak + 3 次 OTA | **通过**：+168 行、PID 不变、CPU 0%、RSS 2092KB；24h/50 次未做 |
-| i.MX6ULL 驱动 | DHT22 IIO + PIR 字符设备 | **冒烟通过**：22.0°C/76.2%RH；PIR 有消抖，硬件无电容仍偶发 |
+| i.MX6ULL 驱动 | DHT22 IIO + PIR 字符设备 | **通过**（v0.2 platform driver + DTS）：probe `from device tree`、19.6°C/50.5%RH、PIR read 5 次/60s、select 3 次事件、rmmod/insmod 2 轮无告警；详见 `docs/test-report-b-drivers.md` |
 | 24h 稳定性 | 丢帧 < 0.01%，P99 < 50 ms | 待实现 |
 | bus-off 恢复 | 3 s 内恢复 | 待实现 |
 

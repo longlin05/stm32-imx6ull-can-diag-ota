@@ -250,23 +250,36 @@ OTA 开始暂停周期 DTC，结束恢复
 
 ## 6. 项目 B 当前状态
 
-已有：
+**2026-11-09 完成 platform driver + 设备树改造，实测通过**
 
 ```text
-DHT22 IIO 驱动
-PIR 字符设备
-read / poll
-200ms 消抖 + 3s holdoff
-Linux 4.1.15 交叉编译
-hello.ko 加载验证
+DHT22 IIO 驱动     platform_driver + of_match("zulong,dht22") + devm_gpiod_get
+PIR 字符设备       platform_driver + of_match("zulong,pir") + threaded IRQ（双沿）
+设备树             从板子 DTB 反编译后追加节点重编，已刷入 SD 启动分区
+回退路径           没有 DT 节点时仍可用 gpio_num 模块参数
 ```
 
-实测：
+实测（原始输出见 `docs/test-report-b-drivers.md`）：
 
 ```text
-DHT22：22.0°C / 76.2%RH
-PIR：/dev/pir 可读，poll 正常
+dht22 dht22: probed, from device tree
+pir   pir:   probed, irq=38, initial=1, from device tree
+in_temp_input = 19600（19.6°C）  in_humidityrelative_input = 50500（50.5%RH）
+pin 27/32 被 dht22/pir 认领（zl_dht22grp / zl_pirgrp）
+PIR：read 60s 出 5 次事件；python select() 挥手后 3 次事件
+rmmod/insmod 2 轮，dmesg 无 warn/oops
 ```
+
+v0.1 遗留的两个 bug 已修：
+
+```text
+dht22_exit() 不 unregister/free/gpio_free → rmmod 后 GPIO 被占，二次 insmod 必失败
+PIR 只申请上升沿 → level 停在 1，后续事件靠抖动偶然复位
+```
+
+设备树相关文件在 `dts/`（`base/` 是板子原版 DTB，`build.sh` 带往返自检）。
+刷入方式：同名覆盖 SD 启动分区里的 `imx6ull-14x14-emmc-4.3-480x272-c.dtb`，
+备份为同目录 `.dtb.bak`。
 
 硬件：
 
@@ -335,9 +348,9 @@ make ARCH=arm CROSS_COMPILE=arm-poky-linux-gnueabi- \
 
 ---
 
-## 8. 下一步：项目 B 设备树 + platform driver
+## 8. 项目 B 设备树 + platform driver（已完成 2026-11-09）
 
-### 目标
+### 目标（已达成）
 
 去掉：
 
@@ -366,16 +379,18 @@ DT 里已有 alientek,dht11 / alientek,ds18b20 厂商节点
 结论：板子 DTB 是**厂商改过的 EVK**，VM 里那棵 `rel_imx_4.1.15_2.1.0_ga` 是原版树，
 不能直接拿它重编 DTB。
 
-路线定为：
+实际做法（2026-11-09 已完成，和当初草案有出入）：
 
 ```text
-从板子 boot 分区取 imx6ull-14x14-evk.dtb
-  → dtc 反编译 → 加节点 → 重编成 imx6ull-14x14-evk-b.dtb
-  → fw_setenv fdt_file 切换，回退只改 env
+板子实际跑的是 imx6ull-14x14-emmc-4.3-480x272-c.dtb（fb0 modes = U:480x272p-56）
+板子没有 fw_printenv，u-boot env 改不了
+→ 只能同名覆盖，原文件在板子上留 .dtb.bak，仓库 dts/base/ 也存了一份
+反编译后追加节点再重编，diff 只有新增 26 行、没有删除
 驱动同步转 platform_driver + of_match，module_param 留作回退
 ```
 
-先确认 fdt_file 与厂商 dht11 占用的 GPIO（可能和 GPIO1_IO04 冲突），再动 DTS。
+已确认 GPIO1_IO04 / GPIO1_IO09 运行时都没被占（pinmux 里 UNCLAIMED），
+厂商 dht11/ds18b20 节点用的是 GPIO1_IO01，PWM 背光在 GPIO1_IO08，都不冲突。
 
 ### 原始确认步骤（留档）
 
@@ -524,6 +539,7 @@ CSDN 发布 09/10
 更新 00 总览目录
 更新 README 已发布列表
 简历 CSDN 行改成 11 篇
+可选：写 11 讲“设备树 + platform driver 改造”（素材在 dts/ 和 docs/test-report-b-drivers.md）
 ```
 
 简历：

@@ -83,3 +83,19 @@ scp out/imx6ull-14x14-emmc-4.3-480x272-c.dtb root@192.168.137.103:/run/media/mmc
 
 起不来时：把 `dts/base/` 里那份原版 DTB 拷回 SD 卡的启动分区即可
 （需要读卡器；`base/` 里的文件和板子上的一模一样）。
+
+## 实测记录（2026-11-09）
+
+```text
+上传      imx6ull-14x14-emmc-4.3-480x272-c.dtb  md5 f6f13490a451045eacca7f67084f5033
+原文件备份 ...dtb.bak                          md5 71a317052fb1b1164f8cfb47500e9814
+重启后 /proc/device-tree/dht22 有 compatible/data-gpios/pinctrl-0
+重启后 /proc/device-tree/pir   同上
+/sys/bus/platform/devices  出现 dht22 和 pir
+/sys/class/graphics/fb0/modes 仍是 U:480x272p-56（屏参没被破坏）
+pinmux 里 pin 27 / pin 32 仍 UNCLAIMED（没驱动绑定时本来就不该被占）
+```
+
+启动日志里的报错和刷之前一样（`mxsfb ... failed to find mxc display driver`、
+`ap3216c ... failed`、`fsl-quadspi ... probe failed`），不是这次改动引入的。
+
