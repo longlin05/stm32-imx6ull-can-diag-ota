@@ -38,6 +38,9 @@ gateway/uds_cli
 *.order
 .tmp_versions/
 
+# Device tree rebuild output (dts/base + fragment are tracked, generated dtb is not)
+dts/out/
+
 # IDE / editor
 .vscode/
 .idea/
