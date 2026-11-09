@@ -493,4 +493,18 @@ B 项目测试报告
 - 测试日志：`test/records/20261107-driver-smoke.log`
 - 后续（设备树 + platform driver）：B 系列 `i.MX6ULL 驱动笔记`
 
+---
+
+## 13. 下一篇
+
+这一篇停在"模块能加载、sysfs 能读数"。
+
+下一步是把 `insmod` 里的 `gpio_num=4` 去掉：用设备树描述引脚，改 platform driver
+在 probe 里自动申请。那部分单独开了个系列：
+
+```text
+i.MX6ULL 驱动笔记 01：把 insmod 的 gpio_num 换成设备树
+代码仓库：https://github.com/longlin05/imx6ull-dht22-pir-drivers
+```
+
 标签：`Linux` `i.MX6ULL` `IIO` `DHT22` `PIR` `GPIO` `内核模块`
