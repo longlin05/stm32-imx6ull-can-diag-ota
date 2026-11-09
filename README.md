@@ -185,6 +185,12 @@ flowchart LR
 
 每个目录的职责见对应 `README.md`。
 
+> **项目 B（i.MX6ULL 传感器驱动）已独立成仓库：**
+> https://github.com/longlin05/imx6ull-dht22-pir-drivers
+>
+> 驱动代码、设备树改造和对应测试都搬过去了；本仓库的 `b-v0.1` / `b-v0.2`
+> tag 里仍保留着当时的代码，但新的提交不会再出现 `drivers/`、`dts/`。
+
 ---
 
 ## 7. 快速开始（占位）
@@ -310,8 +316,14 @@ CSDN：`blog.csdn.net/longlin101`
 
 计划：
 
-10. 09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备（本地稿，待发布）
-11. 10 测试报告：24h/72h、P99、bus-off 数据
+```text
+09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备（本地稿，待发布）   ← 本系列的桥梁篇
+10 测试报告：24h/72h、P99、bus-off 数据
+```
+
+> 设备树 / platform driver 之后的内容不放在本系列，移到独立系列
+> 「i.MX6ULL 驱动笔记」，代码与文章都在
+> [imx6ull-dht22-pir-drivers](https://github.com/longlin05/imx6ull-dht22-pir-drivers)。
 
 ---
 

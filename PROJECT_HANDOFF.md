@@ -77,13 +77,24 @@ Windows: D:\Linux\imx6ull\gateway
 
 ### 驱动代码
 
-主仓库内：
+**2026-11-09 起项目 B 已独立成仓库：**
 
 ```text
-drivers/hello
-drivers/dht22_iio
-drivers/pir_gpio
+https://github.com/longlin05/imx6ull-dht22-pir-drivers
+本地：D:\嵌入式学习\嵌入式软件开发\imx6ull-dht22-pir-drivers
 ```
+
+里面包含：
+
+```text
+drivers/dht22_iio     IIO 驱动（platform driver + DTS）
+drivers/pir_gpio      字符设备（platform driver + threaded IRQ）
+dts/                  从板子 DTB 反编译重建的节点与构建脚本
+test/  docs/          测试脚本、测试记录、设备树调查记录
+```
+
+本仓库（A）的 `b-v0.1` / `b-v0.2` tag 里仍保留当时的驱动代码，
+但 HEAD 已经移除了 `drivers/` 和 `dts/`，避免两边分叉。
 
 ---
 
@@ -260,7 +271,7 @@ PIR 字符设备       platform_driver + of_match("zulong,pir") + threaded IRQ�
 回退路径           没有 DT 节点时仍可用 gpio_num 模块参数
 ```
 
-实测（原始输出见 `docs/test-report-b-drivers.md`）：
+实测（原始输出见 B 仓库的 `docs/test-report-b-drivers.md`）：
 
 ```text
 dht22 dht22: probed, from device tree
@@ -278,7 +289,7 @@ dht22_exit() 不 unregister/free/gpio_free → rmmod 后 GPIO 被占，二次 in
 PIR 只申请上升沿 → level 停在 1，后续事件靠抖动偶然复位
 ```
 
-设备树相关文件在 `dts/`（`base/` 是板子原版 DTB，`build.sh` 带往返自检）。
+设备树相关文件在 B 仓库的 `dts/`（`base/` 是板子原版 DTB，`build.sh` 带往返自检）。
 刷入方式：同名覆盖 SD 启动分区里的 `imx6ull-14x14-emmc-4.3-480x272-c.dtb`，
 备份为同目录 `.dtb.bak`。
 
@@ -368,7 +379,7 @@ platform_driver probe 自动申请
 pinctrl 配置复用
 ```
 
-### 板级 DTS 已确认（2026-11-07，详见 `docs/b-dts-plan.md`）
+### 板级 DTS 已确认（2026-11-07，详见 B 仓库 `docs/dts-investigation.md`）
 
 ```text
 compatible = fsl,imx6ull-14x14-evk, fsl,imx6ull
@@ -385,7 +396,7 @@ DT 里已有 alientek,dht11 / alientek,ds18b20 厂商节点
 ```text
 板子实际跑的是 imx6ull-14x14-emmc-4.3-480x272-c.dtb（fb0 modes = U:480x272p-56）
 板子没有 fw_printenv，u-boot env 改不了
-→ 只能同名覆盖，原文件在板子上留 .dtb.bak，仓库 dts/base/ 也存了一份
+→ 只能同名覆盖，原文件在板子上留 .dtb.bak，B 仓库 dts/base/ 也存了一份
 反编译后追加节点再重编，diff 只有新增 26 行、没有删除
 驱动同步转 platform_driver + of_match，module_param 留作回退
 ```
@@ -469,7 +480,7 @@ threaded IRQ
 线程半部读 GPIO、消抖、wake_up
 ```
 
-已知要修的 bug（`docs/b-dts-plan.md` 第 5 节）：
+已知要修的 bug（B 仓库 `docs/dts-investigation.md` 第 5 节）：
 
 ```text
 dht22_exit() 没 unregister/free/gpio_free
@@ -540,7 +551,7 @@ CSDN 发布 09/10
 更新 00 总览目录
 更新 README 已发布列表
 简历 CSDN 行改成 11 篇
-可选：写 11 讲“设备树 + platform driver 改造”（素材在 dts/ 和 docs/test-report-b-drivers.md）
+B 系列「i.MX6ULL 驱动笔记」b00/b01 已起草（在 B 仓库 docs/blog/）
 ```
 
 简历：
