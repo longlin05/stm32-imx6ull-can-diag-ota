@@ -489,7 +489,7 @@ B 项目测试报告
 - 仓库（项目 A）：https://github.com/longlin05/stm32-imx6ull-can-diag-ota
 - 驱动仓库（项目 B，已独立）：https://github.com/longlin05/imx6ull-dht22-pir-drivers
 - tag：`b-v0.1`（驱动代码现在在 B 仓库）
-- 驱动：`drivers/dht22_iio`、`drivers/pir_gpio`
+- 驱动：B 仓库的 `drivers/dht22_iio`、`drivers/pir_gpio`
 - 测试日志：`test/records/20261107-driver-smoke.log`
 - 后续（设备树 + platform driver）：B 系列 `i.MX6ULL 驱动笔记`
 
