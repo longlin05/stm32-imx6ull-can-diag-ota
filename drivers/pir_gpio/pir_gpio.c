@@ -15,6 +15,7 @@
  *   /sys/.../enable  1/0 开关
  */
 #include <linux/device.h>
+#include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/fs.h>
 #include <linux/gpio.h>
@@ -232,10 +233,15 @@ static int pir_probe(struct platform_device *pdev)
         return st->irq;
     }
 
-    /* 线程半部要睡，必须以 ONESHOT 带线程的方式申请 */
+    /*
+     * 线程半部要睡，必须以 ONESHOT 带线程的方式申请。
+     * 上升沿报事件，下降沿只用来把 st->level 复位 ——
+     * 只申请上升沿的话，第一次事件之后 level 一直为 1，后面再也报不出来。
+     */
     ret = devm_request_threaded_irq(&pdev->dev, st->irq,
                                     pir_hardirq, pir_thread,
-                                    IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+                                    IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+                                    IRQF_ONESHOT,
                                     "pir-out", st);
     if (ret != 0) {
         dev_err(&pdev->dev, "request_threaded_irq %d failed: %d\n", st->irq, ret);

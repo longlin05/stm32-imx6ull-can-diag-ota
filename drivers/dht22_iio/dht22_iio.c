@@ -6,8 +6,9 @@
  *   2) 回退：没有设备树节点时用模块参数 gpio_num（兼容旧用法）
  *
  * IIO 通道：
- *   in_temp_input              温度，单位 0.001 摄氏度
- *   in_humidityrelative_input  湿度，单位 0.001 %RH
+ *   in_temp_input                温度，单位 0.001 摄氏度
+ *   in_humidityrelative_input    湿度，单位 0.001 %RH
+ *   in_*_raw / in_*_scale        同样的值走 RAW + SCALE 两路
  */
 #include <linux/bitops.h>
 #include <linux/delay.h>
@@ -45,17 +46,21 @@ MODULE_PARM_DESC(gpio_num, "global GPIO number for DHT22 DATA (used only without
 /* probe 是否被设备树节点触发过 */
 static bool dht22_probed;
 
+#define DHT22_CHAN_MASK (BIT(IIO_CHAN_INFO_RAW) | \
+                         BIT(IIO_CHAN_INFO_PROCESSED) | \
+                         BIT(IIO_CHAN_INFO_SCALE))
+
 static const struct iio_chan_spec dht22_channels[] = {
     {
         .type = IIO_TEMP,
         .channel = 0,
-        .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
+        .info_mask_separate = DHT22_CHAN_MASK,
         .datasheet_name = "temperature",
     },
     {
         .type = IIO_HUMIDITYRELATIVE,
         .channel = 0,
-        .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
+        .info_mask_separate = DHT22_CHAN_MASK,
         .datasheet_name = "humidity",
     },
 };
@@ -163,7 +168,14 @@ static int dht22_read_raw(struct iio_dev *indio_dev,
     struct dht22_state *st = iio_priv(indio_dev);
     int ret;
 
-    if (mask != IIO_CHAN_INFO_RAW) {
+    /* 值本身就是 0.001 单位，所以 scale 恒为 1 */
+    if (mask == IIO_CHAN_INFO_SCALE) {
+        *val = 1;
+        *val2 = 0;
+        return IIO_VAL_INT;
+    }
+
+    if (mask != IIO_CHAN_INFO_RAW && mask != IIO_CHAN_INFO_PROCESSED) {
         return -EINVAL;
     }
 
