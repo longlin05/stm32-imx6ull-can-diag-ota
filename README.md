@@ -313,13 +313,10 @@ CSDN：`blog.csdn.net/longlin101`
 7. [06 CAN Bootloader：A/B 分区、CRC32、跳转与回滚](https://blog.csdn.net/longlin101/article/details/170201376)
 8. [07 OTA 实战：0x34/0x36/0x37，A/B 双向升级与中断保持旧槽](https://blog.csdn.net/longlin101/article/details/170201534)
 9. [08 Linux 网关：SocketCAN + gatewayd + SQLite + MQTT](https://blog.csdn.net/longlin101/article/details/170245246)
+10. [09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备，以及 GPIO/内核模块踩坑](https://blog.csdn.net/longlin101/article/details/170347113)
+11. [10 测试报告：15 分钟稳定性、3 次 OTA，以及 CAN 采样点这个坑](https://blog.csdn.net/longlin101/article/details/170347116)
 
-计划：
-
-```text
-09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备（本地稿，待发布）   ← 本系列的桥梁篇
-10 测试报告：24h/72h、P99、bus-off 数据
-```
+A 系列到此结束（共 11 篇）。
 
 > 设备树 / platform driver 之后的内容不放在本系列，移到独立系列
 > 「i.MX6ULL 驱动笔记」，代码与文章都在

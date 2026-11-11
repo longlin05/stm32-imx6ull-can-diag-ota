@@ -1,9 +1,10 @@
 # STM32 + i.MX6ULL CAN 诊断与 OTA（10）：测试报告——15 分钟稳定性、3 次 OTA，以及 CAN 采样点这个坑
 
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
-> 上一篇：09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备（本地稿，待发布）
+> 上一篇：[09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备](https://blog.csdn.net/longlin101/article/details/170347113)
 > 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
 > 本文对应 tag：`a-v1.0`
+> 已发布：https://blog.csdn.net/longlin101/article/details/170347116
 
 最后一篇不是再加功能，而是把前面的东西变成数据。
 
@@ -274,5 +275,15 @@ i.MX6ULL 内核驱动
 - tag：`a-v1.0`
 - 测试报告：`docs/test-report.md`
 - 原始日志：`test/records/20261107-reliability-15min.log`
+
+---
+
+## 12. 系列结束之后
+
+A 系列到这里结束。之后的 i.MX6ULL 设备树改造、platform driver、
+以及按 IIO 子系统规范重写驱动，放在独立系列：
+
+- 系列目录：[i.MX6ULL 驱动笔记（00）：这个系列写什么](https://blog.csdn.net/longlin101/article/details/170550740)
+- 第一篇：[（01）把 insmod 的 gpio_num 换成设备树](https://blog.csdn.net/longlin101/article/details/170550878)
 
 标签：`STM32` `i.MX6ULL` `CAN` `UDS` `OTA` `测试`

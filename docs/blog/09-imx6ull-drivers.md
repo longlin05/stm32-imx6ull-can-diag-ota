@@ -2,8 +2,9 @@
 
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
 > 上一篇：[08 Linux 网关：SocketCAN + gatewayd + SQLite + MQTT](https://blog.csdn.net/longlin101/article/details/170245246)
-> 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
-> 本文对应 tag：`b-v0.1`
+> 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)（tag `b-v0.1` 里是这一篇的代码）
+> 驱动仓库：[imx6ull-dht22-pir-drivers](https://github.com/longlin05/imx6ull-dht22-pir-drivers)（后续设备树版本）
+> 已发布：https://blog.csdn.net/longlin101/article/details/170347113
 
 08 是 i.MX6ULL 上的用户态网关。
 
@@ -497,13 +498,15 @@ B 项目测试报告
 
 ## 13. 下一篇
 
-这一篇停在"模块能加载、sysfs 能读数"。
+A 系列最后一篇是测试报告，把前面所有功能变成数据：
 
-下一步是把 `insmod` 里的 `gpio_num=4` 去掉：用设备树描述引脚，改 platform driver
-在 probe 里自动申请。那部分单独开了个系列：
+- [10 测试报告：15 分钟稳定性、3 次 OTA，以及 CAN 采样点这个坑](https://blog.csdn.net/longlin101/article/details/170347116)
+
+这一篇停在"模块能加载、sysfs 能读数"。下一步是把 `insmod` 里的 `gpio_num=4` 去掉：
+用设备树描述引脚，改 platform driver 在 probe 里自动申请。那部分单独开了个系列：
 
 - 系列目录：[i.MX6ULL 驱动笔记（00）：这个系列写什么](https://blog.csdn.net/longlin101/article/details/170550740)
-- 本篇：[（01）把 insmod 的 gpio_num 换成设备树](https://blog.csdn.net/longlin101/article/details/170550878)
+- 第一篇：[（01）把 insmod 的 gpio_num 换成设备树](https://blog.csdn.net/longlin101/article/details/170550878)
 - 代码仓库：https://github.com/longlin05/imx6ull-dht22-pir-drivers
 
 标签：`Linux` `i.MX6ULL` `IIO` `DHT22` `PIR` `GPIO` `内核模块`
