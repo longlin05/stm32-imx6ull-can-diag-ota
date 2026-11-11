@@ -544,14 +544,23 @@ docs/blog/09-imx6ull-drivers.md
 docs/blog/10-test-report.md
 ```
 
+B 系列「i.MX6ULL 驱动笔记」已发布（2026-11-11）：
+
+```text
+B00 这个系列写什么
+    https://blog.csdn.net/longlin101/article/details/170550740
+B01 把 insmod 的 gpio_num 换成设备树
+    https://blog.csdn.net/longlin101/article/details/170550878
+草稿在 B 仓库 docs/blog/，配图 docs/blog/img/b01-dt-path.png
+```
+
 待办：
 
 ```text
-CSDN 发布 09/10
+CSDN 发布 09/10（09 发布后，把 b00/b01 里的“前置 09”链接换成真实 URL）
 更新 00 总览目录
 更新 README 已发布列表
 简历 CSDN 行改成 11 篇
-B 系列「i.MX6ULL 驱动笔记」b00/b01 已起草（在 B 仓库 docs/blog/）
 ```
 
 简历：

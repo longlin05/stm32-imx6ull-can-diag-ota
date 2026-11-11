@@ -324,6 +324,10 @@ CSDN：`blog.csdn.net/longlin101`
 > 设备树 / platform driver 之后的内容不放在本系列，移到独立系列
 > 「i.MX6ULL 驱动笔记」，代码与文章都在
 > [imx6ull-dht22-pir-drivers](https://github.com/longlin05/imx6ull-dht22-pir-drivers)。
+>
+> 已发布：
+> - [B00 这个系列写什么](https://blog.csdn.net/longlin101/article/details/170550740)
+> - [B01 把 insmod 的 gpio_num 换成设备树](https://blog.csdn.net/longlin101/article/details/170550878)
 
 ---
 
