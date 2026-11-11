@@ -558,9 +558,16 @@ B01 把 insmod 的 gpio_num 换成设备树
 
 ```text
 CSDN 发布 09/10（09 发布后，把 b00/b01 里的“前置 09”链接换成真实 URL）
-更新 00 总览目录
-更新 README 已发布列表
-简历 CSDN 行改成 11 篇
+更新 00 总览目录（CSDN 上的 A 系列总览，加 B 系列两篇）
+简历 PDF 需要重新导出（docx 已改，机器上没有 LibreOffice）
+```
+
+已完成（2026-11-11）：
+
+```text
+README 已发布列表补了 B00/B01
+简历 docx：CSDN 行改成 11 篇；驱动那条 bullet 更新到 v0.2（设备树 + platform driver）
+简历备份：林祖龙_嵌入式实习简历_v2_bak-20261111.docx
 ```
 
 简历：
