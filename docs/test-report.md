@@ -189,3 +189,43 @@
 是否可以写进简历：是/否
 备注：
 ```
+
+---
+
+## 附：UDS 0x27 / 0x2E 实测（2026-11-13）
+
+固件：`My_AI_A` 新建 App A（version 2，image `app_a_027.img`，CRC `0x14ECD611`）
+通过本项目的 OTA 通道写入非活动槽，trial 启动后 `22 F1B0` 从 `01` 变 `00`。
+
+测试脚本：`test/uds_sec_test.py`（板上 python3 + 原生 CAN socket，发用 cansend）
+
+```text
+10 03                                   -> 50 03
+22 F1A0                                 -> 62 F1 A0 01
+2E F1A0 00（未解锁）                      -> 7F 2E 33
+27 01                                   -> 67 01 <seed>
+27 02 DEADBEEF（错 key）                  -> 7F 27 35
+27 01                                   -> 67 01 <seed>
+27 02 <正确 key>                          -> 67 02
+2E F1A0 00                              -> 6E F1 A0
+22 F1A0                                 -> 62 F1 A0 00
+2E F1A1 88 13                           -> 6E F1 A1
+22 F1A1                                 -> 62 F1 A1 88 13
+2E F1A1 00 00（越界）                     -> 7F 2E 31
+2E F190 41（只读 DID）                    -> 7F 2E 31
+2E F1A0 01（恢复）                        -> 6E F1 A0
+10 01 / 27 01                           -> 50 01 / 7F 27 7F
+三次错 key                               -> 35 / 35 / 36，随后 37
+```
+
+结果：**14 项用例全部符合预期**。
+
+## OTA 期间和 gatewayd 抢总线（复现）
+
+第一次 OTA 在 `offset 1024` 就 `0x36 failed`，串口/抓包都能看到 gatewayd 每 5 s
+发的 `19 02 FF` 插在 0x36 传输中间。停掉 gatewayd 后一次通过。
+
+```text
+临时处理：OTA 前 pkill gatewayd，OTA 后重启
+正式方案：OTA 开始时暂停周期 DTC，结束后恢复（未实现）
+```

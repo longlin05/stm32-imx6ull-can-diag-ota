@@ -196,6 +196,77 @@ DID 表：
 | `0x0103` | Reset Reason | 1 | 上电/看门狗/软件复位 |
 | `0x0104` | DTC Count | 1 | confirmed 数量 |
 
+#### `0x27` SecurityAccess
+
+只实现 level 1（seed/key 各 4 字节），且**只在扩展/编程会话里允许**。
+
+请求 seed：
+
+```text
+27 01
+```
+
+正响应：
+
+```text
+67 01 <seed 4 字节，大端>
+```
+
+发送 key：
+
+```text
+27 02 <key 4 字节，大端>
+```
+
+正响应：
+
+```text
+67 02
+```
+
+key 由 seed 经固定变换得到（`uds_calc_key()`，演示用；量产应换成 HSM/产线密钥）：
+
+```text
+k = seed ^ 0x5A5A5A5A
+k = rotl(k, 13)
+k ^= 0xA5A5A5A5
+k = k * 2654435761
+key = k ^ 0x55AA55AA
+```
+
+规则：
+
+```text
+- 一次 seed 只能试一次 key（失败后必须重新 27 01）
+- 连续 3 次失败 → 锁定 10 s，期间任何 key 都回 0x37
+- 切会话 / S3 超时 → 自动上锁
+- 已解锁时再请求 seed → 返回全 0 seed
+```
+
+#### `0x2E` WriteDataByIdentifier
+
+请求：
+
+```text
+2E <DID high> <DID low> <data...>
+```
+
+正响应：
+
+```text
+6E <DID high> <DID low>
+```
+
+可写 DID（都需要先通过 `0x27`）：
+
+| DID | 含义 | 长度 | 字节序 |
+|---|---|---|---|
+| `0xF1A0` | PIR 开关 | 1 | — |
+| `0xF1A1` | 温湿度上报周期 ms | 2 | 小端（与 `22` 读出的顺序一致） |
+| `0xF1A2` | 心跳周期 ms | 2 | 小端 |
+
+其余 DID（VIN、版本、序列号等）只读，写回 `7F 2E 31`。
+
 #### `0x19` ReadDTCInformation
 
 请求（子功能 `0x02`）：
@@ -236,7 +307,13 @@ DTC 采用 3 字节编码，例如 `0xC001` 表示为 `C0 01 00`。
 | `0x12` | Sub-function not supported |
 | `0x13` | Incorrect message length |
 | `0x22` | Conditions not correct |
+| `0x24` | Request sequence error（没有先取 seed 就发 key） |
 | `0x31` | Request out of range |
+| `0x33` | Security access denied（没解锁就写） |
+| `0x35` | Invalid key |
+| `0x36` | Exceed number of attempts（连续 3 次错 key） |
+| `0x37` | Required time delay not expired（锁定 10 s 内） |
+| `0x7E` | Sub-function not supported in active session |
 | `0x7F` | Service not supported in active session |
 
 ---
