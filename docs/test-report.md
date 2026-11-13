@@ -220,12 +220,36 @@
 
 结果：**14 项用例全部符合预期**。
 
-## OTA 期间和 gatewayd 抢总线（复现）
+## A/B 两槽一致性
 
-第一次 OTA 在 `offset 1024` 就 `0x36 failed`，串口/抓包都能看到 gatewayd 每 5 s
-发的 `19 02 FF` 插在 0x36 传输中间。停掉 gatewayd 后一次通过。
+App A 通过 `uds_cli` 写入（见上），App B 用同一份改动重新编译：
 
 ```text
-临时处理：OTA 前 pkill gatewayd，OTA 后重启
-正式方案：OTA 开始时暂停周期 DTC，结束后恢复（未实现）
+app_a_027.img  CRC 0x14ECD611   app_b_027.img  CRC 0x55DFD06B
+App B 写入后：22 F1B0 -> 62 F1 B0 01
+App B 上重跑 14 项用例：全部符合预期
 ```
+
+## OTA 期间的总线竞争（定位清楚了）
+
+第一次 OTA 在 `offset 1024` 就 `0x36 failed`，抓包能看到 gatewayd 每 5 s 发的
+`19 02 FF` 插在 0x36 传输中间。停掉 gatewayd 后一次通过。
+
+第二次改用 `gwctl ota`（走 gatewayd 内部的 OTA 路径），**没有停 gatewayd 也一次通过**。
+读 `gatewayd.c` 的主循环可以解释：
+
+```text
+while (!g_stop) {
+    poll(&pfd, 1, 500);          /* 只等 unix socket */
+    serve_client(c);             /* OTA 在这里同步跑完 */
+    if (time(NULL) >= next_poll) periodic_poll();   /* 串行，OTA 期间不会执行 */
+}
+```
+
+结论：
+
+```text
+gatewayd 单线程，OTA 和周期 DTC 天然互斥 → 用 gwctl ota 即可
+uds_cli 是独立进程，和 gatewayd 各发各的 → 用它 OTA 前必须先停 gatewayd
+```
+
