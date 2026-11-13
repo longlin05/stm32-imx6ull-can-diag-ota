@@ -260,7 +260,24 @@ OTA 开始暂停周期 DTC，结束恢复
 
 ---
 
-## 6. 项目 B 当前状态
+## 6. 项目 B 当前状态：已完成（v0.4，2026-11-13）
+
+**状态：完成。** tag `b-v0.4`，四篇文章已发布，代码/设备树/测试记录齐全。
+
+```text
+v0.1  misc 字符设备 + module parameter（09 那篇的状态）
+v0.2  platform driver + 设备树（DHT22 IIO / PIR misc）
+v0.3  PIR 改成 input 子系统（EV_KEY + evdev）
+v0.4  开机自动加载（/lib/modules/extra + depmod + /etc/modules）
+```
+
+已知问题（未解决，已记录）：
+
+```text
+GPIO1_IO04 与 ov5640 的 pwn-gpios 共用 → 摄像头起不来
+GPIO1_IO09 与触摸屏 IRQ 共用 → 触摸若恢复会抢 PIR
+恢复方案在 B 仓库 README 第 9 节（DHT22 挪到 GPIO1_IO01）
+```
 
 **2026-11-09 完成 platform driver + 设备树改造，实测通过**
 
@@ -360,7 +377,7 @@ make ARCH=arm CROSS_COMPILE=arm-poky-linux-gnueabi- \
 
 ---
 
-## 8. 项目 B 设备树 + platform driver（已完成 2026-11-09）
+## 8. 项目 B 设备树 + platform driver（2026-11-09 完成，后续见 §6）
 
 ### 目标（已达成）
 
@@ -582,13 +599,15 @@ CSDN 手动修改项（文章已发布，只能在线编辑）：
 两个系列靠文末单向链接衔接（A 的 09 → B00，B 的 b00 → 09），不做双向目录
 ```
 
-已完成（2026-11-11）：
+已完成（2026-11-13，项目 B 收尾）：
 
 ```text
-README 已发布列表补了 B00/B01
-简历 docx：CSDN 行改成 11 篇；驱动那条 bullet 更新到 v0.2（设备树 + platform driver）
+B 仓库打 tag b-v0.4（platform driver + input + 自动加载）
+简历 docx：CSDN 行改成 15 篇（A 00–10 + B 00–03）；驱动 bullet 补 input 子系统和自动加载
 简历备份：林祖龙_嵌入式实习简历_v2_bak-20261111.docx
+A 仓库 README 补 B02/B03 链接
 ```
+
 
 简历：
 
