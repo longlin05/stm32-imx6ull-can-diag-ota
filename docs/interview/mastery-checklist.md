@@ -480,5 +480,31 @@ can0 0.750                    10 次 read-did → 9 ok / 1 timeout
 客户端的 1 s 超时被这个延迟打穿，所以表现为偶发 timeout
 ```
 
-**待办**：接回 STM32 的 USB 串口（COM8），看 `ISOTP tx: UDS response started`
-的时间戳，确认是"应用层晚发"还是"发了但总线重传"。两者修法完全不同。
+**已确认（串口日志，2026-11-13 21:19）**：
+
+```text
+21:19:39.433 ISOTP rx: SF 3B
+21:19:39.433 ISOTP tx: UDS response started 4B -> 0x7E8     ← 同一毫秒
+```
+
+STM32 是**即时回**的（rx 与 tx 同一毫秒），所以那 1.5–4.5 s 不是应用层调度问题。
+
+同一时期 `can0` 的状态：
+
+```text
+can state ERROR-WARNING (berr-counter tx 74 rx 122)
+bus-off 累计 18 次、error-passive 27 次
+```
+
+两次抓包对比：
+
+```text
+gatewayd 停掉 → 请求到响应 0.7 ms
+gatewayd 运行 → 请求到响应 0.6 ms（这一轮正常）
+之前出现 1.5/1.6/4.5 s 延迟时，正是错误计数在涨的时段
+```
+
+**结论**：应用层没问题，延迟来自总线错误恢复（重传/错误帧/退避）。
+下一步查物理层：两端 120Ω 终端电阻、CAN_H/CAN_L 走线、共地。
+面试口径：**"串口时间戳证明 MCU 是毫秒级回，问题在总线侧"**，
+这是"分层定位"的典型例子。
