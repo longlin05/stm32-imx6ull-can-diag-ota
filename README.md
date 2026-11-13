@@ -325,6 +325,7 @@ A 系列到此结束（共 11 篇）。
 > 已发布：
 > - [B00 这个系列写什么](https://blog.csdn.net/longlin101/article/details/170550740)
 > - [B01 把 insmod 的 gpio_num 换成设备树](https://blog.csdn.net/longlin101/article/details/170550878)
+> - [B02 PIR 为什么不该做成字符设备——换成 input 子系统](https://blog.csdn.net/longlin101/article/details/170741777)
 
 ---
 
