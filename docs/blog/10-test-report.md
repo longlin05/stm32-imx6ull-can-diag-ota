@@ -1,5 +1,6 @@
 # STM32 + i.MX6ULL CAN 诊断与 OTA（10）：测试报告——15 分钟稳定性、3 次 OTA，以及 CAN 采样点这个坑
 
+> **2026-11-13 修订**：第 4 节「采样点」的结论下早了，已按复测数据改写。
 > 系列目录：[从“CAN 能通”到“可诊断、可升级”](https://blog.csdn.net/longlin101/article/details/169562720)
 > 上一篇：[09 i.MX6ULL 驱动：DHT22 IIO + PIR 字符设备](https://blog.csdn.net/longlin101/article/details/170347113)
 > 仓库：[stm32-imx6ull-can-diag-ota](https://github.com/longlin05/stm32-imx6ull-can-diag-ota)
@@ -83,7 +84,7 @@ A -> B   ok
 
 ```text
 1. OTA 后没复位，又发了下一次
-2. Linux CAN 采样点 0.866，STM32 是 0.75
+2. 总线错误状态没清干净（当时的判断记成"采样点不一致"，见第 4 节的修订）
 ```
 
 改成：
@@ -97,7 +98,7 @@ ip link set can0 up type can bitrate 500000 sample-point 0.75 restart-ms 100
 
 ---
 
-## 4. 采样点这个坑
+## 4. 采样点这个坑（2026-11-13 修订）
 
 现象：
 
@@ -117,27 +118,65 @@ tx errors 0
 
 看起来总线很好，但 STM32 一直 ACK error。
 
-根因：
+**当时的判断**：
 
 ```text
 Linux sample-point 0.866
 STM32 sample-point 0.75
 ```
 
-改成 0.75：
-
-```bash
-sudo ip link set can0 down
-sudo ip link set can0 up type can bitrate 500000 sample-point 0.75 restart-ms 100
-```
-
-立刻恢复。
-
-这件事值得记住：
-
-> **CAN 不只要 bitrate 一样，采样点也要匹配。**
+改成 0.75 之后恢复，于是写下"必须匹配 0.75"。
 
 ---
+
+### 11 月 13 日复测：这个因果下早了
+
+后来把固件重新算了一遍，又做了两种采样点的对比实验：
+
+```text
+按当前源码：PSC 6 / BS1 11 / BS2 2 → (1+11)/14 = 85.7%
+（11 月初那版固件确实是 0.75，后来重新生成过，两个数都对，只是固件换了）
+```
+
+同一块板子、同一段线，两种采样点各跑 10 次 `read-did`：
+
+```text
+can0 sample-point 0.866（被 round 成 0.850）   8 ok / 2 timeout
+can0 sample-point 0.750                       9 ok / 1 timeout
+```
+
+**两种都能通**，差距在噪声里。
+
+再看串口日志（MCU 侧）：
+
+```text
+21:19:39.433 ISOTP rx: SF 3B
+21:19:39.433 ISOTP tx: UDS response started 4B -> 0x7E8
+```
+
+收和发在**同一毫秒**，说明 MCU 一直是即时响应的。
+
+而出现秒级延迟的那些时段，`can0` 的状态是：
+
+```text
+can state ERROR-WARNING (berr-counter tx 74 rx 122)
+bus-off 累计 18 次、error-passive 27 次
+```
+
+### 修正后的结论
+
+```text
+1. 那一次"改 0.75 就恢复"里，真正起作用的大概率是 down/up：
+   清掉 bus-off 和错误计数、重新进入 ERROR-ACTIVE
+2. 采样点仍然要匹配——差太多一定出问题——但"必须 0.75 才通"不成立
+3. 秒级延迟来自总线错误恢复（重传/错误帧/退避），不是应用层
+4. 下一步该查物理层：两端 120Ω、走线、共地
+```
+
+值得记住的改成：
+
+> **现象消失 ≠ 找到根因。**
+> 一次改动里如果同时做了 down/up 和改参数，先怀疑"重置"，再怀疑"参数"。
 
 ## 5. bus-off 恢复
 
@@ -240,6 +279,8 @@ MQTT 补传
 ```
 
 不要写“50/50”，没有就是没有。
+
+（安全访问 0x27 与写 DID 0x2E 已经在 11-13 补上，不在"没做"之列。）
 
 ---
 
