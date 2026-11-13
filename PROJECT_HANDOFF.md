@@ -535,8 +535,8 @@ Buildroot 集成
 
 ```text
 A 系列 00 ~ 10   共 11 篇（10 是测试报告，也是 A 的收尾）
-B 系列 00 / 01 / 02   设备树 + platform driver、PIR 改 input
-合计 14 篇
+B 系列 00 / 01 / 02 / 03   设备树 + platform driver、PIR 改 input、开机自动加载
+合计 15 篇
 ```
 
 本地稿：
@@ -555,6 +555,8 @@ B01 把 insmod 的 gpio_num 换成设备树
     https://blog.csdn.net/longlin101/article/details/170550878
 B02 PIR 为什么不该做成字符设备——换成 input 子系统
     https://blog.csdn.net/longlin101/article/details/170741777
+B03 从手动 insmod 到开机自动加载——以及它暴露的引脚冲突
+    https://blog.csdn.net/longlin101/article/details/170742009
 草稿在 B 仓库 docs/blog/，配图 docs/blog/img/b01-dt-path.png
 ```
 
