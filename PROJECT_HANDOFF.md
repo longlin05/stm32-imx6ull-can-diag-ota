@@ -548,6 +548,16 @@ Buildroot 集成
 
 ## 10. 文档和博客
 
+面试准备（2026-11-13 新增）：
+
+```text
+docs/interview/project-a-question-bank.md   48 题（新增 0x27/0x2E 六题）
+docs/interview/project-b-question-bank.md   25 题（设备树 / platform / IIO / input / 自动加载）
+docs/interview/embedded-fundamentals.md     C / OS / Linux 驱动 / 总线 / 手写代码
+docs/interview/project-a-mastery.md         掌握标准 L1–L4（沿用）
+```
+
+
 已发布：
 
 ```text
